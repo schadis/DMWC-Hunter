@@ -1,0 +1,9 @@
+## Interface: 11320
+## Title: DoMeWhen Classic - HunterMod
+## Author: schadis
+## Notes: Hunter Rotation for DoMeWhen Classic
+## DefaultState: Disabled
+## Dependencies: DoMeWhen-Classic
+
+Settings.lua
+Rotation.lua
