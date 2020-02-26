@@ -213,9 +213,10 @@ end
 
 
 local function ifMSG(msg, targetName)
-	if not infight then return end
+	if not infight 
+		then return end
 	if msg == "Enrage" 
-	and not bossenraged	
+	    or msg == "Frenzy"
 	and (targetName == "Magmadar"
 	    or targetName == "Flamegor"
 	    or targetName == "Chromaggus"
@@ -224,11 +225,10 @@ local function ifMSG(msg, targetName)
 	then
 		bossenraged = true
 	elseif msg == "EnrageStop" 
-	    and bossenraged
 	    then
     	bossenraged = false
 	end
-	--print(bossenraged)
+	print(bossenraged)
 end
  
  
