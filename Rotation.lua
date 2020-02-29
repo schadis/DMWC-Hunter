@@ -2,12 +2,16 @@ local DMW = DMW
 local Hunter = DMW.Rotations.HUNTER
 local Rotation = DMW.Helpers.Rotation
 local Setting = DMW.Helpers.Rotation.Setting
-local Player, Pet, Buff, Debuff, Spell, Target, Talent, Item, GCD, Health, CDs, HUD, Enemy20Y, Enemy20YC, Enemy30Y, Enemy30YC ,CTime
+local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD, Health, CDs, HUD, Enemy20Y, Enemy20YC, Enemy30Y, Enemy30YC , CTime
 local ShotTime = GetTime()
 
 local castingAimedShot = false
+local bossenraged = false
+local EnrageNR = 0;
+local TranqMana = 0;
+--local Markisup = false
 
-local quiverSpeed = 1.00
+local quiverSpeed = 1.00;
 local aimedCastTime = 3500;
 local multiCastTime = 500;
 
@@ -73,7 +77,7 @@ local endTime = 0;
 local dStart = 0;
 local dPred = 0;
 
-local bossenraged = false
+
 
 local quiver = {}    --Blizzard's API does not allow me to determine haste from quiver so I have to do it manually.
 quiver[2101]  = 1.10 --Light Quiver
@@ -159,7 +163,7 @@ end
 
  
 local function CombatLogEvent(...)
-	local timeStamp, subEvent, _, sourceID, _, _, _, targetID = ...;
+	local timeStamp, subEvent, _, sourceID, sourceName, _, _, targetID = ...;
 	
 
 	if(subEvent == "SPELL_CAST_START") then
@@ -198,6 +202,80 @@ local function CombatLogEvent(...)
 			castingAimedShot = false
 		end
 	end
+	
+--When boss goes Frenzy	
+	if(subEvent == "SPELL_AURA_APPLIED") then
+		if sourceName ~= Chromaggus
+		or sourceName ~= Magmadar
+		or sourceName ~= Flamegor
+		then return end
+		
+		local spellID = select(12, ...);
+		if (spellID == 23128) --frenzy Chromaggus
+		or (spellID == 19451) --frenzy Magmadar
+		or (spellID == 23342) --frenzy Flamegor
+			then
+		bossenraged = true
+		EnrageNR = EnrageNR + 1
+		end
+	end
+	
+--When Frenzy was removed	
+	if(subEvent == "SPELL_AURA_REMOVED") then
+		if sourceName ~= Chromaggus
+		or sourceName ~= Magmadar
+		or sourceName ~= Flamegor
+		then return end
+		
+		local spellID = select(12, ...);
+		if(spellID == 23128) --frenzy Chromaggus
+		or (spellID == 19451) --frenzy Magmadar
+		or (spellID == 23342) --frenzy Flamegor
+			then
+		bossenraged = false
+		end
+	end	
+	
+
+-- Mark is up
+	-- if(subEvent == "SPELL_AURA_APPLIED") then
+		-- if(sourceID ~= Friend.GUID or sourceID ~= Player.GUID) then return end
+		
+		-- local destGUID = select(8, ...);
+		-- local spellID = select(12, ...);
+		-- if destGUID == Target.GUID
+		-- and (spellID == 1130) -- from low ranks to high
+		-- or (spellID == 14323) --
+		-- or (spellID == 14324) --
+		-- or (spellID == 14325) --
+		-- or (spellID == 19421) --
+		-- or (spellID == 19422) --
+		-- or (spellID == 19423) --
+		-- or (spellID == 19424) --
+		-- or (spellID == 19425) --
+			-- then
+		-- Markisup = true
+		-- end
+	-- end
+	
+-- Marks is gone	
+	-- if(subEvent == "SPELL_AURA_REMOVED") then
+		-- local spellID = select(12, ...);
+		-- if(spellID == 1130) -- from low ranks to high
+		-- or (spellID == 14323) --
+		-- or (spellID == 14324) --
+		-- or (spellID == 14325) --
+		-- or (spellID == 19421) --
+		-- or (spellID == 19422) --
+		-- or (spellID == 19423) --
+		-- or (spellID == 19424) --
+		-- or (spellID == 19425) --
+			-- then
+		-- Markisup = false
+		-- end
+	-- end	
+
+
 end
 
 local function SpellInterrupted(source, castGUID, spellID)
@@ -222,13 +300,22 @@ local function ifMSG(msg, targetName)
 	    or targetName == "Chromaggus"
 	    or targetName == "Princess Huhuran"
 	    or targetName == "Gluth")
+		and infight
 	then
 		bossenraged = true
 	elseif msg == "EnrageStop" 
 	    then
     	bossenraged = false
 	end
-	print(bossenraged)
+	--print(bossenraged)
+end
+
+local function TranqshotMana()
+	if Setting("Save Tranq Mana") then
+		TranqMana = 15
+	elseif not Setting("Save Tranq Mana") then 
+		TranqMana = 0
+	end
 end
  
  
@@ -479,17 +566,35 @@ local function Shots()
 		if Setting("Tranq Shot")
 		    and Spell.TranquilizingShot:Known()
 			and Spell.TranquilizingShot:IsReady()
-		    and bossenraged
-	    	and Target.Facing 
+			and bossenraged
+			and EnrageNR > 0
+	    	and (EnrageNR % Setting("Tranq Order")) == 0
+			and Target.Facing 
 	    	and Target.Distance > 8
 	    	and not castingAimedShot
 	        and not Player.Casting
 	    	and not (Target.CreatureType == "Totem") 
 	    	and Spell.TranquilizingShot:Cast(Target) then
-			    return true
-		end		
-		
 
+				return true
+				
+		end	
+		
+--TranquilizingShot (if Boss goes Enraged)
+--		if Setting("Tranq Shot2")
+--		    and Spell.TranquilizingShot:Known()
+--			and Spell.TranquilizingShot:IsReady()
+--	    	and Target.Facing 
+--	    	and Target.Distance > 8
+--	    	and not castingAimedShot
+--	        and not Player.Casting
+--	    	and not (Target.CreatureType == "Totem") 
+--			and Target:Dispel(Spell.TranquilizingShot)
+--	    	and Spell.TranquilizingShot:Cast(Target) then
+--				return true
+								
+--		end	
+		
 
 --Concussive Shot  ( fix if mob targets you  or pet lost threat)
 		if Setting("Concussiv Shot") 
@@ -498,6 +603,7 @@ local function Shots()
 	    	and Target.Distance > 8
 	    	and not castingAimedShot
 	        and not Player.Casting
+			and Player.PowerPct > TranqMana
 	    	and not (Target.CreatureType == "Totem") 
 	    	and Spell.ConcussiveShot:Cast(Target) then
 			    return true
@@ -510,7 +616,8 @@ local function Shots()
 	    	and not Player.Casting
 	    	and not castingAimedShot
 	    	and Target.Distance > 8  
-	    	and Player.PowerPct > 6 
+	    	and Player.PowerPct > 6
+			and Player.PowerPct > TranqMana			
 	    	and Target.TTD > 5
 	    	and not (Target.CreatureType == "Mechanical" or Target.CreatureType == "Elemental" or CreatureType == "Totem") 
 	    	and not Debuff.SerpentSting:Exist(Target) 
@@ -527,7 +634,8 @@ local function Shots()
 		    and Spell.AimedShot:IsReady()
 		    and not Spell.AimedShot:LastCast()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4 
+		    and Player.PowerPct > 4
+			and Player.PowerPct > TranqMana			
 		    and Target.TTD > 6
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
@@ -543,7 +651,8 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4 
+		    and Player.PowerPct > 4
+			and Player.PowerPct > TranqMana				
 		    and not (Target.CreatureType == "Totem") 
 		    and Player.Moving and Spell.ArcaneShot:Cast(Target)
 		then
@@ -559,7 +668,8 @@ local function Shots()
 		    and not Spell.AimedShot:LastCast()
 		    and Spell.AutoShot:LastCast()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4 
+		    and Player.PowerPct > 4
+			and Player.PowerPct > TranqMana				
 		    and Target.TTD > 6
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving 
@@ -574,7 +684,8 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4 
+		    and Player.PowerPct > 4
+			and Player.PowerPct > TranqMana				
 		    and not (Target.CreatureType == "Totem") 
 		    and Player.Moving and Spell.ArcaneShot:Cast(Target)
 		then
@@ -590,6 +701,7 @@ local function Shots()
 		    and Spell.MultiShot:IsReady()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 4
+			and Player.PowerPct > TranqMana	
 		    and Target.TTD > 2
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving 
@@ -607,6 +719,7 @@ local function Shots()
 		    and Spell.MultiShot:IsReady()
 	    	and Target.Distance > 8 
 	    	and Player.PowerPct > 4
+			and Player.PowerPct > TranqMana				
 	    	and Target.TTD > 2 
 	    	and not (Target.CreatureType == "Totem") 
 	    	and not Player.Moving 
@@ -621,7 +734,8 @@ local function Shots()
 	    	and not Player.Casting
 	    	and Spell.ArcaneShot:IsReady()
 	    	and Target.Distance > 8 
-	    	and Player.PowerPct > 4 
+	    	and Player.PowerPct > 4
+			and Player.PowerPct > TranqMana				
 	    	and not (Target.CreatureType == "Totem")
 			and not castingAimedShot			
 	    	and Spell.ArcaneShot:Cast(Target) then
@@ -655,7 +769,8 @@ end
 
 function Hunter.Rotation()
     Locals()
-
+	TranqshotMana()
+	
 		if Utility() then
 			return true 
 		end
@@ -701,15 +816,17 @@ function Hunter.Rotation()
         and Target.Facing 
         and not Player.Casting
         and not castingAimedShot
+		and Player.PowerPct > TranqMana 
         and Target.Distance < 100 
         and Target.TTD > 10 
 		--and not Spell.HuntersMark:LastCast() 
-        and not Debuff.HuntersMark:Exist(Target) 
+        --and not Markisup
+		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
         and Spell.HuntersMark:Cast(Target) then
                 return true
 				
-            end
+        end
 		
 	
 		petbuff()
@@ -745,6 +862,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 	elseif(event == "PLAYER_ENTERING_WORLD") then
 		GetQuiverInfo();
 		updateRequired = true;
+	elseif(event == "ENCOUNTER_START") then
+	    EnrageNR = 0;
+	elseif(event == "ENCOUNTER_END") then
+	    EnrageNR = 0;
 	elseif(event == "CHAT_MSG_ADDON") then
 	    ifMSG(msg, targetName)
 	end

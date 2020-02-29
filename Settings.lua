@@ -61,6 +61,8 @@ function Hunter.Settings()
 	UI.AddToggle("Concussiv Shot", "Will use Concussiv Shot", true)
     UI.AddRange	("Concussiv Shot Distance", "Range < yards to cast Concussiv Shot", 8, 45, 1, 30)
     UI.AddToggle("Tranq Shot","Uses Tranq Shot if Enraged", true)
+	UI.AddToggle("Save Tranq Mana","Holds back 10% Mana for Tranqshot", true)
+	UI.AddDropdown("Tranq Order", "Tranqshot every first,second or third frenzy", { 1, 2, 3}, 1)
 	UI.AddToggle("Clipped Rotation", "Clipp Autoshots or not", true)    
 	
 --  Defensive
