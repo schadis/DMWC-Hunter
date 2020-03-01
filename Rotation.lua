@@ -6,10 +6,12 @@ local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD,
 local ShotTime = GetTime()
 
 local castingAimedShot = false
-local bossenraged = false
+local BossIsEnraged = false
 local EnrageNR = 0;
 local TranqMana = 0;
 --local Markisup = false
+local SendAddonMessage = C_ChatInfo.SendAddonMessage
+local BossName = nil;
 
 local quiverSpeed = 1.00;
 local aimedCastTime = 3500;
@@ -160,13 +162,24 @@ local function GetQuiverInfo()
 	updateRequired = false;
 end 
 
-
+--Not working cause it is not updated reliable
+-- local function isMarkupcheck(unitId, checkName)
+	-- for i=1,16,1  do
+		-- local name, _, _, _, _, _, _, UnitAura(unitId, i);
+		-- if (name == checkName) then
+			-- return true
+		-- elseif (name == nil ) then		
+        -- break -- this check for nil is for efficiency but might cause it not to work; I don't know
+		-- end
+	-- return false
+	-- end
+-- end
  
 local function CombatLogEvent(...)
 	local timeStamp, subEvent, _, sourceID, sourceName, _, _, targetID = ...;
-	
 
 	if(subEvent == "SPELL_CAST_START") then
+	
 		if(sourceID ~= UnitGUID("player")) then return end
 
 		local spellName = select(13, ...);
@@ -201,44 +214,10 @@ local function CombatLogEvent(...)
 		if(spellName == sAimedShot or spellName == sMultiShot) then
 			castingAimedShot = false
 		end
-	end
-	
---When boss goes Frenzy	
-	if(subEvent == "SPELL_AURA_APPLIED") then
-		if sourceName ~= Chromaggus
-		or sourceName ~= Magmadar
-		or sourceName ~= Flamegor
-		then return end
-		
-		local spellID = select(12, ...);
-		if (spellID == 23128) --frenzy Chromaggus
-		or (spellID == 19451) --frenzy Magmadar
-		or (spellID == 23342) --frenzy Flamegor
-			then
-		bossenraged = true
-		EnrageNR = EnrageNR + 1
-		end
-	end
-	
---When Frenzy was removed	
-	if(subEvent == "SPELL_AURA_REMOVED") then
-		if sourceName ~= Chromaggus
-		or sourceName ~= Magmadar
-		or sourceName ~= Flamegor
-		then return end
-		
-		local spellID = select(12, ...);
-		if(spellID == 23128) --frenzy Chromaggus
-		or (spellID == 19451) --frenzy Magmadar
-		or (spellID == 23342) --frenzy Flamegor
-			then
-		bossenraged = false
-		end
-	end	
-	
 
--- Mark is up
-	-- if(subEvent == "SPELL_AURA_APPLIED") then
+--Mark is up
+	-- elseif(subEvent == "SPELL_AURA_APPLIED") then
+	-- print ("aura applied")
 		-- if(sourceID ~= Friend.GUID or sourceID ~= Player.GUID) then return end
 		
 		-- local destGUID = select(8, ...);
@@ -254,12 +233,12 @@ local function CombatLogEvent(...)
 		-- or (spellID == 19424) --
 		-- or (spellID == 19425) --
 			-- then
+		-- print("MarkOnTarget")
 		-- Markisup = true
 		-- end
-	-- end
-	
--- Marks is gone	
-	-- if(subEvent == "SPELL_AURA_REMOVED") then
+
+--Marks is gone	
+	-- elseif(subEvent == "SPELL_AURA_REMOVED") then
 		-- local spellID = select(12, ...);
 		-- if(spellID == 1130) -- from low ranks to high
 		-- or (spellID == 14323) --
@@ -271,9 +250,49 @@ local function CombatLogEvent(...)
 		-- or (spellID == 19424) --
 		-- or (spellID == 19425) --
 			-- then
+		-- print("MarkGone")
 		-- Markisup = false
 		-- end
-	-- end	
+	
+--When boss goes Frenzy	
+	elseif(subEvent == "SPELL_AURA_APPLIED") then
+		if sourceName ~= Chromaggus
+		or sourceName ~= Magmadar
+		or sourceName ~= Flamegor
+		then return end
+		
+		local spellID = select(12, ...);
+		if (spellID == 23128) --frenzy Chromaggus
+		or (spellID == 19451) --frenzy Magmadar
+		or (spellID == 23342) --frenzy Flamegor
+			then
+			if BossIsEnraged then return
+			elseif not BossIsEnraged then
+			BossIsEnraged = true
+			EnrageNR = EnrageNR + 1
+			print("Enrage Start by AURA")
+			end
+		
+		end
+	
+	
+--When Frenzy was removed	
+	elseif(subEvent == "SPELL_AURA_REMOVED") then
+		if sourceName ~= Chromaggus
+		or sourceName ~= Magmadar
+		or sourceName ~= Flamegor
+		then return end
+		
+		local spellID = select(12, ...);
+		if(spellID == 23128) --frenzy Chromaggus
+		or (spellID == 19451) --frenzy Magmadar
+		or (spellID == 23342) --frenzy Flamegor
+			then
+		BossIsEnraged = false
+		print("Enrage Stopp by AURA")
+		end
+		
+	end
 
 
 end
@@ -290,24 +309,37 @@ local function SpellInterrupted(source, castGUID, spellID)
 end
 
 
-local function ifMSG(msg, targetName)
-	if not infight 
-		then return end
-	if msg == "Enrage" 
-	    or msg == "Frenzy"
-	and (targetName == "Magmadar"
-	    or targetName == "Flamegor"
-	    or targetName == "Chromaggus"
-	    or targetName == "Princess Huhuran"
-	    or targetName == "Gluth")
-		and infight
-	then
-		bossenraged = true
-	elseif msg == "EnrageStop" 
+-- Getting the Encounter Name
+local function ENCOUNTER_START(encounterID, name, difficulty, size)
+	name = BossName
+end
+-- Removing the Encounter Name
+local function ENCOUNTER_END(encounterID, name, difficulty, size)
+	BossName = nil
+end
+
+local function ifMSG(prefix, msg, channel,...)
+	if prefix == "D4C" or prefix == "SOLO" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT" or channel == "WHISPER" or channel == "GUILD") then
+		if not infight 
+			then return end
+		if msg == "Enrage" 
+			or msg == "Frenzy"
+			and (BossName == "Magmadar"
+			or BossName == "Flamegor"
+			or BossName == "Chromaggus"
+			or BossName == "Princess Huhuran"
+			or BossName == "Gluth")
+			and infight
+		then			
+			BossIsEnraged = true
+			EnrageNR = EnrageNR + 1
+			print("Enrage Start by MSG")
+		elseif msg == "EnrageStop" 
 	    then
-    	bossenraged = false
+			BossIsEnraged = false
+			print("Enrage Stopp by MSG")
+		end
 	end
-	--print(bossenraged)
 end
 
 local function TranqshotMana()
@@ -562,11 +594,11 @@ local function Shots()
 			Auto() 
 		end		
 		
---TranquilizingShot (if Boss goes Enraged)
+--TranquilizingShot (if Boss goes Enrage)
 		if Setting("Tranq Shot")
 		    and Spell.TranquilizingShot:Known()
 			and Spell.TranquilizingShot:IsReady()
-			and bossenraged
+			and BossIsEnraged
 			and EnrageNR > 0
 	    	and (EnrageNR % Setting("Tranq Order")) == 0
 			and Target.Facing 
@@ -580,7 +612,7 @@ local function Shots()
 				
 		end	
 		
---TranquilizingShot (if Boss goes Enraged)
+--TranquilizingShot (if Boss goes Enrage)
 --		if Setting("Tranq Shot2")
 --		    and Spell.TranquilizingShot:Known()
 --			and Spell.TranquilizingShot:IsReady()
@@ -770,7 +802,8 @@ end
 function Hunter.Rotation()
     Locals()
 	TranqshotMana()
-	
+
+
 		if Utility() then
 			return true 
 		end
@@ -817,10 +850,11 @@ function Hunter.Rotation()
         and not Player.Casting
         and not castingAimedShot
 		and Player.PowerPct > TranqMana 
+		and Player.PowerPct > 10
         and Target.Distance < 100 
         and Target.TTD > 10 
 		--and not Spell.HuntersMark:LastCast() 
-        --and not Markisup
+        --and not isMarkupcheck("target","Hunter's Mark")
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
         and Spell.HuntersMark:Cast(Target) then
@@ -853,6 +887,10 @@ eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED");
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
 eventFrame:RegisterEvent("CHAT_MSG_ADDON");
+eventFrame:RegisterEvent("ENCOUNTER_START");
+eventFrame:RegisterEvent("ENCOUNTER_END");
+
+
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
 	if(event == "COMBAT_LOG_EVENT_UNFILTERED" ) then
@@ -863,10 +901,12 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		GetQuiverInfo();
 		updateRequired = true;
 	elseif(event == "ENCOUNTER_START") then
+		ENCOUNTER_START(encounterID, name, difficulty, size)
 	    EnrageNR = 0;
 	elseif(event == "ENCOUNTER_END") then
+		ENCOUNTER_END(encounterID, name, difficulty, size)
 	    EnrageNR = 0;
 	elseif(event == "CHAT_MSG_ADDON") then
-	    ifMSG(msg, targetName)
+	    ifMSG(prefix, msg, channel,...)
 	end
 end) 
