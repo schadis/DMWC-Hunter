@@ -118,7 +118,7 @@ local function GetCurrentRangeHaste()
 			if(spellId == nil) then
 				stop = stop + 1;
 			else
-				local coef = spellId == 26635 and GetBerserkingHaste() or helpfulRangeModifiers[spellId];
+				local coef = spellId == 26635 and (GetBerserkingHaste() or helpfulRangeModifiers[spellId]);
 				if(coef) then
 					speed = speed * coef;
 				end
@@ -256,15 +256,15 @@ local function CombatLogEvent(...)
 	
 --When boss goes Frenzy	
 	elseif(subEvent == "SPELL_AURA_APPLIED") then
-		if sourceName ~= Chromaggus
+		if (sourceName ~= Chromaggus
 		or sourceName ~= Magmadar
-		or sourceName ~= Flamegor
+		or sourceName ~= Flamegor)
 		then return end
 		
 		local spellID = select(12, ...);
-		if (spellID == 23128) --frenzy Chromaggus
+		if ((spellID == 23128) --frenzy Chromaggus
 		or (spellID == 19451) --frenzy Magmadar
-		or (spellID == 23342) --frenzy Flamegor
+		or (spellID == 23342)) --frenzy Flamegor
 			then
 			if BossIsEnraged then return
 			elseif not BossIsEnraged then
@@ -278,15 +278,15 @@ local function CombatLogEvent(...)
 	
 --When Frenzy was removed	
 	elseif(subEvent == "SPELL_AURA_REMOVED") then
-		if sourceName ~= Chromaggus
+		if (sourceName ~= Chromaggus
 		or sourceName ~= Magmadar
-		or sourceName ~= Flamegor
+		or sourceName ~= Flamegor)
 		then return end
 		
 		local spellID = select(12, ...);
-		if(spellID == 23128) --frenzy Chromaggus
+		if((spellID == 23128) --frenzy Chromaggus
 		or (spellID == 19451) --frenzy Magmadar
-		or (spellID == 23342) --frenzy Flamegor
+		or (spellID == 23342)) --frenzy Flamegor
 			then
 		BossIsEnraged = false
 		print("Enrage Stopp by AURA")
@@ -318,12 +318,15 @@ local function ENCOUNTER_END(encounterID, name, difficulty, size)
 	BossName = nil
 end
 
-local function ifMSG(prefix, msg, channel,...)
-	if prefix == "D4C" or prefix == "SOLO" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT" or channel == "WHISPER" or channel == "GUILD") then
+local function ifMSGfromDBM(prefix, ModPlusMsg, channel)
+		if prefix == "D4C" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT" or channel == "WHISPER" or channel == "GUILD") then
+			if ModPlusMsg == (nil or "") then return end
+			local ModPlus, msg = strsplit("\t", ModPlusMsg)
+		end
 		if not infight 
-			then return end
-		if msg == "Enrage" 
-			or msg == "Frenzy"
+			 then return end
+		if (msg == "Enrage" 
+			or msg == "Frenzy")
 			and (BossName == "Magmadar"
 			or BossName == "Flamegor"
 			or BossName == "Chromaggus"
@@ -338,8 +341,8 @@ local function ifMSG(prefix, msg, channel,...)
 	    then
 			BossIsEnraged = false
 			print("Enrage Stopp by MSG")
+		
 		end
-	end
 end
 
 local function TranqshotMana()
@@ -900,6 +903,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 	elseif(event == "PLAYER_ENTERING_WORLD") then
 		GetQuiverInfo();
 		updateRequired = true;
+		C_ChatInfo.RegisterAddonMessagePrefix("D4C") -- DBM
 	elseif(event == "ENCOUNTER_START") then
 		ENCOUNTER_START(encounterID, name, difficulty, size)
 	    EnrageNR = 0;
@@ -907,6 +911,6 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		ENCOUNTER_END(encounterID, name, difficulty, size)
 	    EnrageNR = 0;
 	elseif(event == "CHAT_MSG_ADDON") then
-	    ifMSG(prefix, msg, channel,...)
+	    ifMSGfromDBM(prefix, msg, channel)
 	end
 end) 
