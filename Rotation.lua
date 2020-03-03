@@ -604,6 +604,7 @@ local function Shots()
 			and BossIsEnraged
 			and EnrageNR > 0
 	    	and (EnrageNR % Setting("Tranq Order")) == 0
+			and Target.Name = BossName
 			and Target.Facing 
 	    	and Target.Distance > 8
 	    	and not castingAimedShot
@@ -614,22 +615,7 @@ local function Shots()
 				return true
 				
 		end	
-		
---TranquilizingShot (if Boss goes Enrage)
---		if Setting("Tranq Shot2")
---		    and Spell.TranquilizingShot:Known()
---			and Spell.TranquilizingShot:IsReady()
---	    	and Target.Facing 
---	    	and Target.Distance > 8
---	    	and not castingAimedShot
---	        and not Player.Casting
---	    	and not (Target.CreatureType == "Totem") 
---			and Target:Dispel(Spell.TranquilizingShot)
---	    	and Spell.TranquilizingShot:Cast(Target) then
---				return true
-								
---		end	
-		
+	
 
 --Concussive Shot  ( fix if mob targets you  or pet lost threat)
 		if Setting("Concussiv Shot") 
