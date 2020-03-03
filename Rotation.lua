@@ -603,7 +603,7 @@ local function Shots()
 			and BossIsEnraged
 			and EnrageNR > 0
 	    	and (EnrageNR % Setting("Tranq Order")) == 0
-			and Target.Name = BossName
+			and (Target.Name == BossName)
 			and Target.Facing 
 	    	and Target.Distance > 8
 	    	and not castingAimedShot
