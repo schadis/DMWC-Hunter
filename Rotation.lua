@@ -361,12 +361,11 @@ end
 	and (DMW.Time - ShotTime) > 0.5 
 	and Target.Distance > 8 
 	and Spell.AutoShot:Cast(Target) 
-	and not castingAimedShot
 	then
 	StartAttack()
 	ShotTime = DMW.Time
 	return true
-		end
+	end
   end
 
 local function Defensive()
