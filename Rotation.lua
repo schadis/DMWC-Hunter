@@ -5,7 +5,7 @@ local Setting = DMW.Helpers.Rotation.Setting
 local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD, Health, CDs, HUD, Enemy20Y, Enemy20YC, Enemy30Y, Enemy30YC , CTime
 local ShotTime = GetTime()
 
-local castingAimedShot = false
+
 local BossIsEnraged = false
 local EnrageNR = 0;
 local TranqMana = 0;
@@ -16,6 +16,15 @@ local BossName = nil;
 local quiverSpeed = 1.00;
 local aimedCastTime = 3500;
 local multiCastTime = 500;
+local reloadTime = 3000;
+local svreloadTime = 0;
+local autoShootCastTime = 700;
+local castingAShot = false
+local isReloading = false
+local reloadPercent = 1
+local reloadEndTime
+local reloadStarTime
+
 
 local bagSlots = {20, 21, 22, 23};
 local updateRequired = false;
@@ -68,6 +77,7 @@ local harmfulRangeModifiers = {
 
 local sAimedShot = GetSpellInfo(19434);
 local sMultiShot = GetSpellInfo(2643);
+local sAutoShot = GetSpellInfo(75)
 
 
 local castTime = 0;
@@ -186,10 +196,22 @@ local function CombatLogEvent(...)
 		--print(spellName)
 		
 		if(spellName == sAimedShot) then
+			CalculateShootTimes()
 			castTime = aimedCastTime;
-			castingAimedShot = true
+			castingAShot = true
+			isReloading = false
+			
 		elseif(spellName == sMultiShot) then
+			CalculateShootTimes()
 			castTime = multiCastTime;
+			castingAShot = true
+			isReloading = false
+			
+		elseif(spellName == sAutoShot) then
+			CalculateShootTimes()
+			castTime = autoShootCastTime;
+			castingAShot = true
+			isReloading = false			
 		else
 			return;
 		end
@@ -211,48 +233,14 @@ local function CombatLogEvent(...)
 		
 		local spellName = select(13, ...);
 		
-		if(spellName == sAimedShot or spellName == sMultiShot) then
-			castingAimedShot = false
+		if(spellName == sAimedShot or spellName == sMultiShot or spellName == sAutoShot) then
+			CalculateShootTimes()
+			castingAShot = false
+			isReloading = true
+			reloadStarTime = GetTime()
+			reloadEndTime = (reloadStarTime + reloadTime)
 		end
-
---Mark is up
-	-- elseif(subEvent == "SPELL_AURA_APPLIED") then
-	-- print ("aura applied")
-		-- if(sourceID ~= Friend.GUID or sourceID ~= Player.GUID) then return end
-		
-		-- local destGUID = select(8, ...);
-		-- local spellID = select(12, ...);
-		-- if destGUID == Target.GUID
-		-- and (spellID == 1130) -- from low ranks to high
-		-- or (spellID == 14323) --
-		-- or (spellID == 14324) --
-		-- or (spellID == 14325) --
-		-- or (spellID == 19421) --
-		-- or (spellID == 19422) --
-		-- or (spellID == 19423) --
-		-- or (spellID == 19424) --
-		-- or (spellID == 19425) --
-			-- then
-		-- print("MarkOnTarget")
-		-- Markisup = true
-		-- end
-
---Marks is gone	
-	-- elseif(subEvent == "SPELL_AURA_REMOVED") then
-		-- local spellID = select(12, ...);
-		-- if(spellID == 1130) -- from low ranks to high
-		-- or (spellID == 14323) --
-		-- or (spellID == 14324) --
-		-- or (spellID == 14325) --
-		-- or (spellID == 19421) --
-		-- or (spellID == 19422) --
-		-- or (spellID == 19423) --
-		-- or (spellID == 19424) --
-		-- or (spellID == 19425) --
-			-- then
-		-- print("MarkGone")
-		-- Markisup = false
-		-- end
+	
 	
 --When boss goes Frenzy	
 	elseif(subEvent == "SPELL_AURA_APPLIED") then
@@ -297,16 +285,50 @@ local function CombatLogEvent(...)
 
 end
 
+		
 local function SpellInterrupted(source, castGUID, spellID)
 	if(source ~= "player") then return end
 	
 	local spellName = GetSpellInfo(spellID);
 	
-	if(spellName == sAimedShot or spellName == sMultiShot) then
-		castingAimedShot = false
+		if(spellName == sAimedShot or spellName == sMultiShot or spellName == sAutoShot) then
+			CalculateShootTimes()
+			castingAShot = false
+			isReloading = true
+			reloadStarTime = GetTime()
+			reloadEndTime = (reloadStarTime + reloadTime)
 		
 	end
 end
+
+local function OnStartAutorepeatSpell()
+		castingAShot = true
+end
+
+local function OnStopAutorepeatSpell()
+		castingAShot = false
+end
+
+local function CalculateShootTimes()
+
+	autoShootCastTime = (700 / GetCurrentRangeHaste())
+	multiCastTime = autoShootCastTime
+	aimedShotTime = ((3.5 / (quiverHaste)) / additionalHaste)
+	reloadTime = UnitRangedDamage("player") - autoShootCastTime
+	if (svreloadTime ~= reloadTime) then --If reload time changed? This could happen for a variety of reasons including getting a new ranged weapon or on initialization
+		svreloadTime = reloadTime
+	end
+end
+
+local function ReloadPercentage()
+
+	if isReloading
+		reloadPercent = ((GetTime()-reloadStarTime)/reloadTime)
+	end
+
+end
+
+
 
 
 -- Getting the Encounter Name
@@ -376,7 +398,7 @@ local function Defensive()
 	 and Player.PowerPct > 20  
 	 and Target.Distance < 8 
 	 and not Buff.AspectOfTheMonkey:Exist(Player)
-	 and not castingAimedShot
+	 and not castingAShot
 	 and not Player.Casting
 	 and Spell.AspectOfTheMonkey:Cast(Player) then
 		return true 
@@ -391,7 +413,7 @@ local function Utility()
 -- Pet management
 	if Setting("Call Pet") 
 	and (not Pet or Pet.Dead) 
-	and not castingAimedShot
+	and not castingAShot
 	and not Player.Casting	
 	and Spell.CallPet:Cast(Player) then
             return true 
@@ -404,7 +426,7 @@ local function Utility()
 	and Pet and not Pet.Dead 
 	and Pet.HP <= Setting("Mend Pet HP") 
 	and Player.PowerPct > 30 
-	and not castingAimedShot
+	and not castingAShot
 	and not Player.Casting
 	and Spell.MendPet:Cast(Pet) then
         return true
@@ -606,7 +628,7 @@ local function Shots()
 			and (Target.Name == BossName)
 			and Target.Facing 
 	    	and Target.Distance > 8
-	    	and not castingAimedShot
+	    	and not castingAShot
 	        and not Player.Casting
 	    	and not (Target.CreatureType == "Totem") 
 	    	and Spell.TranquilizingShot:Cast(Target) then
@@ -621,7 +643,7 @@ local function Shots()
 	    	and Target.Distance < Setting("Concussiv Shot Distance") 
 	    	and Target.Facing 
 	    	and Target.Distance > 8
-	    	and not castingAimedShot
+	    	and not castingAShot
 	        and not Player.Casting
 			and Player.PowerPct > TranqMana
 	    	and not (Target.CreatureType == "Totem") 
@@ -634,7 +656,7 @@ local function Shots()
 	    	and HUD.Serpent == 1 
 	    	and Target.Facing 
 	    	and not Player.Casting
-	    	and not castingAimedShot
+	    	and not castingAShot
 	    	and Target.Distance > 8  
 	    	and Player.PowerPct > 6
 			and Player.PowerPct > TranqMana			
@@ -644,6 +666,11 @@ local function Shots()
 	    	and Spell.SerpentSting:Cast(Target) then
                 return true
         end
+
+--
+--Calculating Reload percentage before goeing throug aimed and multishot
+
+		ReloadPercentage()
 		
 --Aimed shot Clipped Rotation
 		
@@ -659,7 +686,8 @@ local function Shots()
 		    and Target.TTD > 6
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
-			and not castingAimedShot
+			and not castingAShot
+			and reloadPercent <= 0.6
 		    and Spell.AimedShot:Cast(Target) 		
 		then
 			    RunMacroText("/cleartarget")
@@ -681,25 +709,25 @@ local function Shots()
 		
 --Aimed shot full Rotation
 		if Setting("Aimed Shot") 
-		    and not Setting("Clipped Rotation") 
+			and not Setting("Clipped Rotation") 
+			and reloadPercent <= 0.1
+			and not castingAShot
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and not Spell.AimedShot:LastCast()
-		    and Spell.AutoShot:LastCast()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 4
 			and Player.PowerPct > TranqMana				
 		    and Target.TTD > 6
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving 
-			and not castingAimedShot
 		    and Spell.AimedShot:Cast(Target) 		
 		then
 			    RunMacroText("/cleartarget")
                 RunMacroText("/targetlasttarget")			
                 return true
-		elseif Setting("Aimed Shot")
+		elseif Setting("Arcane if moving")
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
@@ -725,28 +753,28 @@ local function Shots()
 		    and Target.TTD > 2
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving 
-			and not castingAimedShot
+			and not castingAShot
 		    and Spell.MultiShot:Cast(Target) then
                 return true
         end		
 
---Multi shot full Rotation	
-		if Setting("Multi Shot")
-		    and not Setting("Clipped Rotation") 
-		    and HUD.Multi == 1 
-		    and Target.Facing 
-		    and not Player.Casting
-		    and Spell.MultiShot:IsReady()
-	    	and Target.Distance > 8 
-	    	and Player.PowerPct > 4
-			and Player.PowerPct > TranqMana				
-	    	and Target.TTD > 2 
-	    	and not (Target.CreatureType == "Totem") 
-	    	and not Player.Moving 
-			and not castingAimedShot			
-	    	and Spell.MultiShot:Cast(Target) then
-                return true
-        end	
+-- Multi shot full Rotation	
+		-- if Setting("Multi Shot")
+		    -- and not Setting("Clipped Rotation") 
+		    -- and HUD.Multi == 1 
+		    -- and Target.Facing 
+		    -- and not Player.Casting
+		    -- and Spell.MultiShot:IsReady()
+	    	-- and Target.Distance > 8 
+	    	-- and Player.PowerPct > 4
+			-- and Player.PowerPct > TranqMana				
+	    	-- and Target.TTD > 2 
+	    	-- and not (Target.CreatureType == "Totem") 
+	    	-- and not Player.Moving 
+			-- and not castingAShot			
+	    	-- and Spell.MultiShot:Cast(Target) then
+                -- return true
+        -- end	
 			
 --Arcane Shot	
 		if Setting("Arcane Shot") 
@@ -757,7 +785,7 @@ local function Shots()
 	    	and Player.PowerPct > 4
 			and Player.PowerPct > TranqMana				
 	    	and not (Target.CreatureType == "Totem")
-			and not castingAimedShot			
+			and not castingAShot			
 	    	and Spell.ArcaneShot:Cast(Target) then
                 return true
 		end		
@@ -802,7 +830,7 @@ function Hunter.Rotation()
 		end
 
 --Aspect of the Hawk
-		if Setting("Aspect of the Hawk") and Target.Facing and not Player.Casting and not castingAimedShot and Target.Distance > 8 and (not Buff.AspectOfTheHawk:Exist(Player) or Buff.AspectOfTheMonkey:Exist(Player)) and Player.PowerPct > 30 and Spell.AspectOfTheHawk:Cast(Player) then
+		if Setting("Aspect of the Hawk") and Target.Facing and not Player.Casting and not castingAShot and Target.Distance > 8 and (not Buff.AspectOfTheHawk:Exist(Player) or Buff.AspectOfTheMonkey:Exist(Player)) and Player.PowerPct > 30 and Spell.AspectOfTheHawk:Cast(Player) then
 			return true
 		end	 
 		
@@ -836,7 +864,7 @@ function Hunter.Rotation()
 		and HUD.Mark == 1 
         and Target.Facing 
         and not Player.Casting
-        and not castingAimedShot
+        and not castingAShot
 		and Player.PowerPct > TranqMana 
 		and Player.PowerPct > 10
         and Target.Distance < 100 
@@ -877,14 +905,18 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD");
 eventFrame:RegisterEvent("CHAT_MSG_ADDON");
 eventFrame:RegisterEvent("ENCOUNTER_START");
 eventFrame:RegisterEvent("ENCOUNTER_END");
-
-
+eventFrame:RegisterEvent("START_AUTOREPEAT_SPELL")
+eventFrame:RegisterEvent("STOP_AUTOREPEAT_SPELL")
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
 	if(event == "COMBAT_LOG_EVENT_UNFILTERED" ) then
 		CombatLogEvent(CombatLogGetCurrentEventInfo());
 	elseif(event == "UNIT_SPELLCAST_INTERRUPTED") then
 		SpellInterrupted(...);
+	elseif event == "START_AUTOREPEAT_SPELL" then
+        OnStartAutorepeatSpell();
+    elseif event == "STOP_AUTOREPEAT_SPELL" then
+        OnStopAutorepeatSpell();	
 	elseif(event == "PLAYER_ENTERING_WORLD") then
 		GetQuiverInfo();
 		updateRequired = true;
