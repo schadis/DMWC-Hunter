@@ -322,7 +322,7 @@ end
 
 local function ReloadPercentage()
 
-	if isReloading
+	if isReloading then
 		reloadPercent = ((GetTime()-reloadStarTime)/reloadTime)
 	end
 
