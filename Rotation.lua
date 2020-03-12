@@ -16,9 +16,9 @@ local BossName = nil;
 local quiverSpeed = 1.00;
 local aimedCastTime = 3500;
 local multiCastTime = 500;
+local autoShotCastTime = 700;
 local reloadTime = 3000;
 local svreloadTime = 0;
-local autoShootCastTime = 700;
 local castingAShot = false
 local isReloading = false
 local reloadPercent = 1
@@ -185,6 +185,17 @@ end
 	-- end
 -- end
  
+ local function CalculateShootTimes()
+
+	autoShotTime = (autoShotCastTime / GetCurrentRangeHaste())
+	multiShoTime = autoShotTime
+	aimedShotTime = (aimedCastTime / GetCurrentRangeHaste())
+	reloadTime = (UnitRangedDamage("player")*1000 - autoShotTime)
+	if (svreloadTime ~= reloadTime) then --If reload time changed? This could happen for a variety of reasons including getting a new ranged weapon or on initialization
+		svreloadTime = reloadTime
+	end
+end
+ 
 local function CombatLogEvent(...)
 	local timeStamp, subEvent, _, sourceID, sourceName, _, _, targetID = ...;
 
@@ -197,19 +208,19 @@ local function CombatLogEvent(...)
 		
 		if(spellName == sAimedShot) then
 			CalculateShootTimes()
-			castTime = aimedCastTime;
+			castTime = aimedShotTime;
 			castingAShot = true
 			isReloading = false
 			
 		elseif(spellName == sMultiShot) then
 			CalculateShootTimes()
-			castTime = multiCastTime;
+			castTime = multiShoTime;
 			castingAShot = true
 			isReloading = false
 			
 		elseif(spellName == sAutoShot) then
 			CalculateShootTimes()
-			castTime = autoShootCastTime;
+			castTime = autoShotTime;
 			castingAShot = true
 			isReloading = false			
 		else
@@ -225,8 +236,6 @@ local function CombatLogEvent(...)
 		startTime = GetTime() * 1000;
 		endTime = startTime + castTime;
 		
-		dStart = GetTime();
-		dPred = dStart + castTime;
 		
 	elseif(subEvent == "SPELL_CAST_SUCCESS") then
 		if(sourceID ~= UnitGUID("player")) then return end
@@ -237,8 +246,23 @@ local function CombatLogEvent(...)
 			CalculateShootTimes()
 			castingAShot = false
 			isReloading = true
-			reloadStarTime = GetTime()
+			reloadStarTime = GetTime()*1000
 			reloadEndTime = (reloadStarTime + reloadTime)
+		end
+
+	elseif(subEvent == "SPELL_CAST_FAILED") then
+		if(sourceID ~= UnitGUID("player")) then return end
+		
+		local spellName = select(13, ...);
+		
+		if(spellName == sAimedShot or spellName == sMultiShot or spellName == sAutoShot) then
+			CalculateShootTimes()
+			castingAShot = false
+			isReloading = true
+			if spellname == sAutoShot then
+			reloadStarTime = GetTime()*1000
+			reloadEndTime = (reloadStarTime + reloadTime)
+			end
 		end
 	
 	
@@ -295,7 +319,7 @@ local function SpellInterrupted(source, castGUID, spellID)
 			CalculateShootTimes()
 			castingAShot = false
 			isReloading = true
-			reloadStarTime = GetTime()
+			reloadStarTime = GetTime()*1000
 			reloadEndTime = (reloadStarTime + reloadTime)
 		
 	end
@@ -309,21 +333,13 @@ local function OnStopAutorepeatSpell()
 		castingAShot = false
 end
 
-local function CalculateShootTimes()
 
-	autoShootCastTime = (700 / GetCurrentRangeHaste())
-	multiCastTime = autoShootCastTime
-	aimedShotTime = ((3.5 / (quiverHaste)) / additionalHaste)
-	reloadTime = UnitRangedDamage("player") - autoShootCastTime
-	if (svreloadTime ~= reloadTime) then --If reload time changed? This could happen for a variety of reasons including getting a new ranged weapon or on initialization
-		svreloadTime = reloadTime
-	end
-end
 
 local function ReloadPercentage()
 
 	if isReloading then
-		reloadPercent = ((GetTime()-reloadStarTime)/reloadTime)
+	local timenow = GetTime()*1000
+		reloadPercent = (( timenow - reloadStarTime)/reloadTime)
 	end
 
 end
@@ -672,6 +688,7 @@ local function Shots()
 
 		ReloadPercentage()
 		
+		
 --Aimed shot Clipped Rotation
 		
 		if Setting("Aimed Shot")
@@ -679,7 +696,6 @@ local function Shots()
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
-		    and not Spell.AimedShot:LastCast()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 4
 			and Player.PowerPct > TranqMana			
@@ -687,14 +703,14 @@ local function Shots()
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
 			and not castingAShot
-			and reloadPercent <= 0.6
+			and reloadPercent <= 0.7
 		    and Spell.AimedShot:Cast(Target) 		
 		then
 			    RunMacroText("/cleartarget")
                 RunMacroText("/targetlasttarget")
                 return true
 
-		elseif Setting("Aimed Shot")
+		elseif Setting("Arcane if moving")
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
@@ -715,7 +731,6 @@ local function Shots()
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
-		    and not Spell.AimedShot:LastCast()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 4
 			and Player.PowerPct > TranqMana				
@@ -742,7 +757,6 @@ local function Shots()
 
 --Multi shot Clipped Rotation
 		if Setting("Multi Shot")
-		    and Setting("Clipped Rotation")
 		    and HUD.Multi == 1 
 		    and Target.Facing 
 		    and not Player.Casting
@@ -758,24 +772,7 @@ local function Shots()
                 return true
         end		
 
--- Multi shot full Rotation	
-		-- if Setting("Multi Shot")
-		    -- and not Setting("Clipped Rotation") 
-		    -- and HUD.Multi == 1 
-		    -- and Target.Facing 
-		    -- and not Player.Casting
-		    -- and Spell.MultiShot:IsReady()
-	    	-- and Target.Distance > 8 
-	    	-- and Player.PowerPct > 4
-			-- and Player.PowerPct > TranqMana				
-	    	-- and Target.TTD > 2 
-	    	-- and not (Target.CreatureType == "Totem") 
-	    	-- and not Player.Moving 
-			-- and not castingAShot			
-	    	-- and Spell.MultiShot:Cast(Target) then
-                -- return true
-        -- end	
-			
+
 --Arcane Shot	
 		if Setting("Arcane Shot") 
 	    	and Target.Facing 
@@ -823,8 +820,8 @@ function Hunter.Rotation()
 		if Utility() then
 			return true 
 		end
-		
-    if Target and Target.ValidEnemy and Target.Distance < 41 then
+	--and Target.ValidEnemy	
+    if Target  and Target.Distance < 41 then
 		if Defensive() then
 			return true
 		end
