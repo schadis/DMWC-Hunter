@@ -16,15 +16,15 @@ local BossName = nil;
 local quiverSpeed = 1.00;
 local aimedCastTime = 3500;
 local multiCastTime = 500;
-local autoShotCastTime = 700;
+local autoShotCastTime = 600;
 local reloadTime = 3000;
 local svreloadTime = 0;
 local castingAShot = false
 local isReloading = false
-local reloadPercent = 1
+local reloadPercent = 100
 local reloadEndTime
-local reloadStarTime
-
+local reloadStarTime = 600
+local reloadInMoment = 0
 
 local bagSlots = {20, 21, 22, 23};
 local updateRequired = false;
@@ -194,6 +194,12 @@ end
 	if (svreloadTime ~= reloadTime) then --If reload time changed? This could happen for a variety of reasons including getting a new ranged weapon or on initialization
 		svreloadTime = reloadTime
 	end
+	
+	if castingAShot and endTime <= (GetTime() * 1000) then
+		castingAShot = false
+		isReloading = true
+	end
+	
 end
  
 local function CombatLogEvent(...)
@@ -204,19 +210,22 @@ local function CombatLogEvent(...)
 		if(sourceID ~= UnitGUID("player")) then return end
 
 		local spellName = select(13, ...);
-		--print(spellName)
+				
+		-- print ("Start")
+		-- print (spellName)
+		
 		
 		if(spellName == sAimedShot) then
 			CalculateShootTimes()
 			castTime = aimedShotTime;
 			castingAShot = true
-			isReloading = false
+			isReloading = true
 			
 		elseif(spellName == sMultiShot) then
 			CalculateShootTimes()
 			castTime = multiShoTime;
 			castingAShot = true
-			isReloading = false
+
 			
 		elseif(spellName == sAutoShot) then
 			CalculateShootTimes()
@@ -226,6 +235,8 @@ local function CombatLogEvent(...)
 		else
 			return;
 		end
+		
+
 		
 		if(updateRequired) then
 			GetQuiverInfo()
@@ -242,26 +253,38 @@ local function CombatLogEvent(...)
 		
 		local spellName = select(13, ...);
 		
+		--print ("Succes")
+		--print (spellName)
+		
 		if(spellName == sAimedShot or spellName == sMultiShot or spellName == sAutoShot) then
 			CalculateShootTimes()
 			castingAShot = false
 			isReloading = true
-			reloadStarTime = GetTime()*1000
-			reloadEndTime = (reloadStarTime + reloadTime)
+			if spellName == sAutoShot then
+				reloadStarTime = GetTime() * 1000
+				reloadEndTime = (reloadStarTime + reloadTime)
+			end
+			
 		end
 
 	elseif(subEvent == "SPELL_CAST_FAILED") then
 		if(sourceID ~= UnitGUID("player")) then return end
 		
 		local spellName = select(13, ...);
+		local why = select(15, ...);
+		
+		if why == "Not yet recovered" then return end
+		
+		-- print ("Failed")
+		-- print (spellName)		
 		
 		if(spellName == sAimedShot or spellName == sMultiShot or spellName == sAutoShot) then
 			CalculateShootTimes()
 			castingAShot = false
 			isReloading = true
 			if spellname == sAutoShot then
-			reloadStarTime = GetTime()*1000
-			reloadEndTime = (reloadStarTime + reloadTime)
+				reloadStarTime = GetTime() * 1000
+				reloadEndTime = (reloadStarTime + reloadTime)
 			end
 		end
 	
@@ -319,14 +342,18 @@ local function SpellInterrupted(source, castGUID, spellID)
 			CalculateShootTimes()
 			castingAShot = false
 			isReloading = true
-			reloadStarTime = GetTime()*1000
+			if spellName == sAutoShot then
+			reloadStarTime = GetTime() * 1000
 			reloadEndTime = (reloadStarTime + reloadTime)
-		
+			end
 	end
 end
 
 local function OnStartAutorepeatSpell()
 		castingAShot = true
+		CalculateShootTimes()
+		reloadStarTime = GetTime() * 1000 + autoShotTime
+		reloadEndTime = (reloadStarTime + reloadTime)
 end
 
 local function OnStopAutorepeatSpell()
@@ -336,12 +363,19 @@ end
 
 
 local function ReloadPercentage()
-
+	CalculateShootTimes()
 	if isReloading then
-	local timenow = GetTime()*1000
-		reloadPercent = (( timenow - reloadStarTime)/reloadTime)
+		reloadInMoment = (GetTime() * 1000 - reloadStarTime)
+		if reloadInMoment < 0 or reloadInMoment > reloadTime  then
+		reloadInMoment = 0
+		isReloading = false
+		end
+		reloadPercent = (100 * (GetTime() * 1000 - reloadStarTime) / reloadTime)
+		if reloadPercent > 100 or reloadPercent < 0 then
+		reloadPercent = 0
+		isReloading = false
+		end
 	end
-
 end
 
 
@@ -507,7 +541,7 @@ local function Utility()
 	end
 	
 -- Use Demonic or Dark Rune --
-	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 then
+	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 and not castingAShot then
 		if Power <= Setting("Use Rune at #% Mana") and Player.Combat then
 			if GetItemCount(12662) >= 1 and GetItemCooldown(12662) == 0 then
 				name = GetItemInfo(12662)
@@ -522,7 +556,7 @@ local function Utility()
 	end	
 
 -- Use best available Mana potion --
-	if Setting("Use Best Mana Potion") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() then
+	if Setting("Use Best Mana Potion") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and not castingAShot then
 		if Power <= Setting("Use Potion at #% Mana") and Player.Combat then
 			if GetItemCount(13444) >= 1 and GetItemCooldown(13444) == 0 then
 				name = GetItemInfo(13444)
@@ -619,7 +653,8 @@ end
  
 local function Shots()	
 	Locals()
-
+	
+	
 --Auto Shot		
 		if Player.Combat
 		    then
@@ -683,11 +718,17 @@ local function Shots()
                 return true
         end
 
---
---Calculating Reload percentage before goeing throug aimed and multishot
 
-		ReloadPercentage()
+--Calculating Reload percentage before goeing throug Aimedshot
+
 		
+		-- print("------")
+		-- print ("is reloading ")
+		-- print (isReloading)
+		-- print (castingAShot)
+		-- print("------")
+		-- print (reloadInMoment)
+		ReloadPercentage()
 		
 --Aimed shot Clipped Rotation
 		
@@ -703,7 +744,8 @@ local function Shots()
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
 			and not castingAShot
-			and reloadPercent <= 0.7
+			-- and reloadPercent <= 50
+			and reloadInMoment <= (reloadTime - 600) 
 		    and Spell.AimedShot:Cast(Target) 		
 		then
 			    RunMacroText("/cleartarget")
@@ -726,8 +768,9 @@ local function Shots()
 --Aimed shot full Rotation
 		if Setting("Aimed Shot") 
 			and not Setting("Clipped Rotation") 
-			and reloadPercent <= 0.1
+			-- and reloadPercent <= 10
 			and not castingAShot
+			and reloadInMoment <= 200 
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
@@ -755,7 +798,7 @@ local function Shots()
                 return true
         end	
 
---Multi shot Clipped Rotation
+--Multi shot
 		if Setting("Multi Shot")
 		    and HUD.Multi == 1 
 		    and Target.Facing 
@@ -768,6 +811,8 @@ local function Shots()
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving 
 			and not castingAShot
+			-- and reloadPercent <= 50
+			and reloadInMoment <= (reloadTime - 600) 
 		    and Spell.MultiShot:Cast(Target) then
                 return true
         end		
@@ -820,8 +865,8 @@ function Hunter.Rotation()
 		if Utility() then
 			return true 
 		end
-	--and Target.ValidEnemy	
-    if Target  and Target.Distance < 41 then
+	--and Target.ValidEnemy
+    if Target 	and Target.Distance < 41 then
 		if Defensive() then
 			return true
 		end
@@ -867,7 +912,7 @@ function Hunter.Rotation()
         and Target.Distance < 100 
         and Target.TTD > 10 
 		--and not Spell.HuntersMark:LastCast() 
-        --and not isMarkupcheck("target","Hunter's Mark")
+        --and not isMarkupcheck(Target,"Hunter's Mark")
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
         and Spell.HuntersMark:Cast(Target) then
