@@ -54,23 +54,23 @@ function Hunter.Settings()
 	
 --  UI.AddHeader("DPS")
 	UI.AddTab("DPS")
-	UI.AddHeader("Offensiv")
+	UI.AddHeader("Cliped or Full Rotation")
+	UI.AddToggle("Clipped Rotation", "Clipp Autoshots or not ", true)   
+	UI.AddHeader("Shots")
 	UI.AddToggle("Aimed Shot", "Aimed Shot", true)
+	UI.AddToggle("Arcane if moving", "Casts Arcane when the player is moving instead of Aimed", true)
 	UI.AddToggle("Multi Shot", "Will use Multishot", true)	
 	UI.AddToggle("Arcane Shot", "Will use Arcanshot", true)
 	UI.AddToggle("Serpent Sting", "Will use Serpent Sting", true)
-	UI.AddToggle("Concussiv Shot", "Will use Concussiv Shot", true)
-    	UI.AddRange	("Concussiv Shot Distance", "Range < yards to cast Concussiv Shot", 8, 45, 1, 30)
-    	UI.AddToggle("Tranq Shot","Uses Tranq Shot if Enraged", true)
 	UI.AddToggle("Save Tranq Mana","Holds back 10% Mana for Tranqshot", true)
-	UI.AddDropdown("Tranq Order", "Tranqshot every first,second or third frenzy", { 1, 2, 3}, 1)
-	UI.AddToggle("Clipped Rotation", "Clipp Autoshots or not", true)    
+ 
 	
 --  Defensive
 	UI.AddTab("Defensive")
 	UI.AddHeader("Defensive")
+	UI.AddToggle("Concussiv Shot", "Will use Concussiv Shot", true)
+    UI.AddRange	("Concussiv Shot Distance", "Range < yards to cast Concussiv Shot", 8, 45, 1, 30)
 	UI.AddToggle("Aspect Of The Monkey", "Use Aspect of the Monkey", true)
-	UI.AddRange	("Seconds for PetAggro", "Seconds for PetAggro", 0, 3, 1, 0)	
 	UI.AddRange	("Aspect of the Monkey HP", "HP to cast AotM", 0, 100, 1, 75)
 	
 --  Utility
@@ -87,8 +87,9 @@ function Hunter.Settings()
 	UI.AddToggle("FuriousHowl if pulled back","Casts FuriousHowl when passiv in fight", true)
 	UI.AddToggle("Mend Pet", "Activate Mend Pet", false)
 	UI.AddBlank()
-	UI.AddRange	("Mend Pet HP", "Pet HP to cast Mend Pet", 0, 60, 1, 35)	
-	UI.AddRange	("Send Pet back in", "only works with Pullback", 61, 100, 1, 70)
+	UI.AddRange ("Mend Pet HP", "Pet HP to cast Mend Pet", 0, 60, 1, 35)	
+	UI.AddRange ("Send Pet back in", "only works with Pullback", 61, 100, 1, 70)
+	UI.AddRange	("Seconds for PetAggro", "Seconds for PetAggro", 0, 3, 1, 0)
     
 	
 	--Consumables Health
@@ -97,13 +98,19 @@ function Hunter.Settings()
 	UI.AddToggle("Use Best HP Potion", "Check back for Potions and use best available one")
 	UI.AddRange("Use Potion at #% HP", nil, 10, 100, 1, 50, true)
 
-    	--Consumables Mana
+    --Consumables Mana
 	
 	UI.AddHeader("Mana Potions on Boss Targets")
 	UI.AddToggle("Use Best Mana Potion", "Check back for Potions and use best available one") 
 	UI.AddRange("Use Potion at #% Mana", nil, 10, 100, 1, 50, true)
-    	UI.AddToggle("Use Demonic or Dark Rune", "Uses Demonic or Dark Rune " ) 	
+    UI.AddToggle("Use Demonic or Dark Rune", "Uses Demonic or Dark Rune " ) 	
 	UI.AddRange("Use Rune at #% Mana", nil, 10, 100, 1, 50, true)
-   
+ 
+
+	-- Not Working needs recode
+	UI.AddTab("Not Working")
+	UI.AddHeader("Do not use this is not working")
+	UI.AddToggle("Tranq Shot","Uses Tranq Shot if Enraged", true)
+	UI.AddDropdown("Tranq Order", "Tranqshot every first,second or third frenzy", { 1, 2, 3}, 1)
 
 end
