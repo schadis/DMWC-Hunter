@@ -53,7 +53,7 @@ function Hunter.Settings()
 
 	
 --  UI.AddHeader("DPS")
-	UI.AddTab("DPS")
+	--UI.AddTab("DPS") not needed cause General is OK
 	UI.AddHeader("Cliped or Full Rotation")
 	UI.AddToggle("Clipped Rotation", "Clipp Autoshots or not ", true)   
 	UI.AddHeader("Shots")
