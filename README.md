@@ -2,6 +2,7 @@
 -Mod with additional functions (base frome Biggie)
 
 22.03.2020
+
 -added second aggro setting for farming with HP of the Target
 
 -Fixed Hunters Mark, recognices also marks from other Hunters
@@ -13,6 +14,7 @@
 -added hunter macro to reduce/fixe the aimeddelay bug from blizzard
 
 15.03.2020
+
 -Ground funktions and shots are working
 
 -Clipped and Full Rotation are working
