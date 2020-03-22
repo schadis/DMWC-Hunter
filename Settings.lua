@@ -89,8 +89,9 @@ function Hunter.Settings()
 	UI.AddBlank()
 	UI.AddRange ("Mend Pet HP", "Pet HP to cast Mend Pet", 0, 60, 1, 35)	
 	UI.AddRange ("Send Pet back in", "only works with Pullback", 61, 100, 1, 70)
+	UI.AddHeader("Wait with attack for Pet Aggro by Seconds or TargetHP")
 	UI.AddRange	("Seconds for PetAggro", "Seconds for PetAggro", 0, 3, 1, 0)
-    
+ 	UI.AddRange	("Target HP <", "Target HP", 80, 100, 1, 100)   
 	
 	--Consumables Health
 	UI.AddTab("Consumables")
@@ -108,7 +109,7 @@ function Hunter.Settings()
  
 
 	-- Not Working needs recode
-	UI.AddTab("Not Working")
+	UI.AddTab("Testing")
 	UI.AddHeader("Do not use this is not working")
 	UI.AddToggle("Tranq Shot","Uses Tranq Shot if Enraged", true)
 	UI.AddDropdown("Tranq Order", "Tranqshot every first,second or third frenzy", { 1, 2, 3}, 1)

@@ -6,24 +6,29 @@ local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD,
 local ShotTime = GetTime()
 
 
-local BossIsEnraged = false
+
 local EnrageNR = 0;
 local TranqMana = 0;
---local Markisup = false
+local Markisup = false
+markedMobs = {}
+local BossIsEnraged = false
+
 local SendAddonMessage = C_ChatInfo.SendAddonMessage
 local BossName = nil;
 
 local quiverSpeed = 1.00;
 local aimedCastTime = 3500;
 local multiCastTime = 500;
-local autoShotCastTime = 600;
+local autoShotCastTime = 500;
 local reloadTime = 3000;
 local svreloadTime = 0;
 local castingAShot = false
+local castingAimed = false
+local AimedMacroDone = false
 local isReloading = false
 local reloadPercent = 100
 local reloadEndTime
-local reloadStarTime = 600
+local reloadStarTime = 0
 local reloadInMoment = 0
 
 local bagSlots = {20, 21, 22, 23};
@@ -37,6 +42,8 @@ local function Locals()
     Buff = Player.Buffs
 	CTimer = Player.CombatTime
     Debuff = Player.Debuffs
+	--DebuffT = DMW.Player.Target.Debuffs
+	--BuffT = DMW.Player.Target.Buffs
 	Health = Player.Health
 	Pet = DMW.Player.Pet
     HP = Player.HP
@@ -122,7 +129,7 @@ local function GetCurrentRangeHaste()
 	local speed = quiverHaste;
 	
 	local stop = 0;
-	for i = 1, 40 do
+	for i = 1, 32 do
 		if(stop ~= 1) then
 			local spellId = select(10, UnitAura("player", i, "HELPFUL"))
 			if(spellId == nil) then
@@ -197,6 +204,7 @@ end
 	
 	if castingAShot and endTime <= (GetTime() * 1000) then
 		castingAShot = false
+		castingAimed = false
 		isReloading = true
 	end
 	
@@ -204,7 +212,8 @@ end
  
 local function CombatLogEvent(...)
 	local timeStamp, subEvent, _, sourceID, sourceName, _, _, targetID = ...;
-
+	
+	-- print (subEvent)
 	if(subEvent == "SPELL_CAST_START") then
 	
 		if(sourceID ~= UnitGUID("player")) then return end
@@ -220,6 +229,8 @@ local function CombatLogEvent(...)
 			castTime = aimedShotTime;
 			castingAShot = true
 			isReloading = true
+			castingAimed = true
+			AimedMacroDone = false
 			
 		elseif(spellName == sMultiShot) then
 			CalculateShootTimes()
@@ -263,6 +274,9 @@ local function CombatLogEvent(...)
 			if spellName == sAutoShot then
 				reloadStarTime = GetTime() * 1000
 				reloadEndTime = (reloadStarTime + reloadTime)
+			elseif spellName == sAimedShot then
+				castingAimed = false
+				AimedMacroDone = false
 			end
 			
 		end
@@ -272,65 +286,159 @@ local function CombatLogEvent(...)
 		
 		local spellName = select(13, ...);
 		local why = select(15, ...);
-		
-		if why == "Not yet recovered" then return end
-		
+		local realFail = false
+
+		if why == "Not yet recovered" or "Another action is in progress" then 
+		realFail = false
+		else 
+		realFail = true
+
+		end
+		-- print (why) 
+		-- print (castingAimed)
+		-- print (castingAShot)
 		-- print ("Failed")
 		-- print (spellName)		
-		
-		if(spellName == sAimedShot or spellName == sMultiShot or spellName == sAutoShot) then
-			CalculateShootTimes()
-			castingAShot = false
-			isReloading = true
-			if spellname == sAutoShot then
-				reloadStarTime = GetTime() * 1000
-				reloadEndTime = (reloadStarTime + reloadTime)
+		if realFail then
+			if(spellName == sAimedShot or spellName == sMultiShot or spellName == sAutoShot) then
+				CalculateShootTimes()
+				castingAShot = false
+				isReloading = true
+				if spellname == sAutoShot then
+					reloadStarTime = GetTime() * 1000
+					reloadEndTime = (reloadStarTime + reloadTime)
+				elseif spellName == sAimedShot then
+					castingAimed = false
+					AimedMacroDone = false
+				end
 			end
 		end
 	
 	
 --When boss goes Frenzy	
-	elseif(subEvent == "SPELL_AURA_APPLIED") then
-		if (sourceName ~= Chromaggus
-		or sourceName ~= Magmadar
-		or sourceName ~= Flamegor)
-		then return end
+	-- elseif(subEvent == "SPELL_AURA_APPLIED") then
+		-- local sourceName  = select(5, ...);
+		-- local spellID = select(12, ...);
 		
-		local spellID = select(12, ...);
-		if ((spellID == 23128) --frenzy Chromaggus
-		or (spellID == 19451) --frenzy Magmadar
-		or (spellID == 23342)) --frenzy Flamegor
-			then
-			if BossIsEnraged then return
-			elseif not BossIsEnraged then
-			BossIsEnraged = true
-			EnrageNR = EnrageNR + 1
-			print("Enrage Start by AURA")
-			end
+		-- if (sourceName ~= Chromaggus
+		-- or sourceName ~= Magmadar
+		-- or sourceName ~= Flamegor)
 		
-		end
+		-- and ((spellID == 23128) --frenzy Chromaggus
+		-- or (spellID == 19451) --frenzy Magmadar
+		-- or (spellID == 23342)) --frenzy Flamegor
+			-- then
+			-- if BossIsEnraged then end
+			-- elseif not BossIsEnraged then
+			-- BossIsEnraged = true
+			-- EnrageNR = EnrageNR + 1
+			-- print("Enrage Start by AURA")
+			-- end
+		-- end
+
+-- Marked Mob Table filling	
 	
+		-- local destGUID  = select(8, ...);
+		-- local casterGUID = select(4, ...);
+		-- local spellID = select(12, ...);
+
+
+		-- if casterGUID == DMW.Player.GUID 
+		-- or UnitIsFriend("casterGUID", "DMW.Player.GUID")
+		-- and spellID == HuntersMark.SpellId
+			-- then
+			-- markedMobs.destGUID = destGUID
+		-- end
 	
+
 --When Frenzy was removed	
-	elseif(subEvent == "SPELL_AURA_REMOVED") then
-		if (sourceName ~= Chromaggus
-		or sourceName ~= Magmadar
-		or sourceName ~= Flamegor)
-		then return end
+	-- elseif(subEvent == "SPELL_AURA_REMOVED") then
+		-- local sourceName  = select(5, ...);
+		-- local spellID = select(12, ...);		
 		
-		local spellID = select(12, ...);
-		if((spellID == 23128) --frenzy Chromaggus
-		or (spellID == 19451) --frenzy Magmadar
-		or (spellID == 23342)) --frenzy Flamegor
-			then
-		BossIsEnraged = false
-		print("Enrage Stopp by AURA")
-		end
+		-- if (sourceName ~= Chromaggus
+		-- or sourceName ~= Magmadar
+		-- or sourceName ~= Flamegor)
+		
+		-- and ((spellID == 23128) --frenzy Chromaggus
+		-- or (spellID == 19451) --frenzy Magmadar
+		-- or (spellID == 23342)) --frenzy Flamegor
+			-- then
+			-- BossIsEnraged = false
+			-- print("Enrage Stopp by AURA")
+		-- end
+
+-- Marked Mob Table emptying
+		
+		-- local destGUID  = select(8, ...);
+		-- local casterGUID = select(4, ...);
+		-- local spellID = select(12, ...);
+		
+		-- if casterGUID == DMW.Player.GUID  
+		-- or UnitIsFriend("casterGUID", "DMW.Player.GUID")
+		-- and spellID == HuntersMark.SpellId			
+			-- then
+			-- markedMobs.destGUID = nil
+		-- end
 		
 	end
+	
+--check if Target has Mark	
+		if DMW.Player.Target ~= nil 
+		    and DMW.Player.Target.Distance < 50 then
+			for i = 1, 16 do
+				if DMW.Player.Target.ValidEnemy and UnitDebuff("target", i) == "Hunter's Mark" then
+					markedMobs[UnitGUID("target")] = UnitGUID("target")
+					break
+				else markedMobs[UnitGUID("target")] = nil
+				end
+			end
+		end
+		
+		if DMW.Player.Target ~= nil then
+			for k, v in pairs(markedMobs) do
+				if v == UnitGUID("target") then
+				Markisup = true
+				break
+				else
+				Markisup = false
+				end
+			end	
+		end
+		
 
-
+		
+		if DMW.Player.Target ~= nil 
+		    and DMW.Player.Target.ValidEnemy 
+		    and DMW.Player.Target.Distance < 50 
+			and (DMW.Player.Target.Name == "Magmadar"
+			or DMW.Player.Target.Name == "Flamegor"
+			or DMW.Player.Target.Name == "Chromaggus"
+			or DMW.Player.Target.Name == "Princess Huhuran"
+			or DMW.Player.Target.Name == "Gluth")
+			then
+				for i = 1, 32 do
+				
+					local name, _, _, debuffType, duration, expirationTime, source, _, _, EnrageId = UnitBuff("target", i) 
+			
+					if (EnrageId == 23128 --frenzy Chromaggus
+					or EnrageId == 19451 --frenzy Magmadar
+					or EnrageId == 23342) --frenzy Flamegor 
+					then 
+							BossIsEnraged = true
+							EnrageNR = EnrageNR + 1
+							print("Enrage Start by UnitBuff")
+							break
+							
+					else
+						BossIsEnraged = false
+					end
+				end
+				
+		end
 end
+	
+
 
 		
 local function SpellInterrupted(source, castGUID, spellID)
@@ -345,6 +453,9 @@ local function SpellInterrupted(source, castGUID, spellID)
 			if spellName == sAutoShot then
 			reloadStarTime = GetTime() * 1000
 			reloadEndTime = (reloadStarTime + reloadTime)
+			elseif spellName == sAimedShot then
+				castingAimed = false
+				AimedMacroDone = false
 			end
 	end
 end
@@ -352,12 +463,17 @@ end
 local function OnStartAutorepeatSpell()
 		castingAShot = true
 		CalculateShootTimes()
+		if infight and not castingAimed then
 		reloadStarTime = GetTime() * 1000 + autoShotTime
 		reloadEndTime = (reloadStarTime + reloadTime)
+		end
 end
 
 local function OnStopAutorepeatSpell()
-		castingAShot = false
+		if castingAimed then
+		castingAShot = true
+		else castingAShot = false
+		end
 end
 
 
@@ -384,38 +500,40 @@ end
 -- Getting the Encounter Name
 local function ENCOUNTER_START(encounterID, name, difficulty, size)
 	name = BossName
+	
 end
 -- Removing the Encounter Name
 local function ENCOUNTER_END(encounterID, name, difficulty, size)
 	BossName = nil
+	
 end
 
-local function ifMSGfromDBM(prefix, ModPlusMsg, channel)
-		if prefix == "D4C" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT" or channel == "WHISPER" or channel == "GUILD") then
-			if ModPlusMsg == (nil or "") then return end
-			local ModPlus, msg = strsplit("\t", ModPlusMsg)
-		end
-		if not infight 
-			 then return end
-		if (msg == "Enrage" 
-			or msg == "Frenzy")
-			and (BossName == "Magmadar"
-			or BossName == "Flamegor"
-			or BossName == "Chromaggus"
-			or BossName == "Princess Huhuran"
-			or BossName == "Gluth")
-			and infight
-		then			
-			BossIsEnraged = true
-			EnrageNR = EnrageNR + 1
-			print("Enrage Start by MSG")
-		elseif msg == "EnrageStop" 
-	    then
-			BossIsEnraged = false
-			print("Enrage Stopp by MSG")
+-- local function ifMSGfromDBM(prefix, ModPlusMsg, channel)
+		-- if prefix == "D4C" and msg and (channel == "PARTY" or channel == "RAID" or channel == "INSTANCE_CHAT" or channel == "WHISPER" or channel == "GUILD") then
+			-- if ModPlusMsg == (nil or "") then return end
+			-- local ModPlus, msg = strsplit("\t", ModPlusMsg)
+		-- end
+		-- if not infight 
+			 -- then return end
+		-- if (msg == "Enrage" 
+			-- or msg == "Frenzy")
+			-- and (BossName == "Magmadar"
+			-- or BossName == "Flamegor"
+			-- or BossName == "Chromaggus"
+			-- or BossName == "Princess Huhuran"
+			-- or BossName == "Gluth")
+			-- and infight
+		-- then			
+			-- BossIsEnraged = true
+			-- EnrageNR = EnrageNR + 1
+			-- print("Enrage Start by MSG")
+		-- elseif msg == "EnrageStop" 
+	    -- then
+			-- BossIsEnraged = false
+			-- print("Enrage Stopp by MSG")
 		
-		end
-end
+		-- end
+-- end
 
 local function TranqshotMana()
 	if Setting("Save Tranq Mana") then
@@ -432,6 +550,9 @@ end
 	if not IsAutoRepeatSpell(Spell.AutoShot.SpellName) 
 	and (DMW.Time - ShotTime) > 0.5 
 	and Target.Distance > 8 
+	and not castingAShot
+	and not castingAimed
+	and not Player.Casting	
 	and Spell.AutoShot:Cast(Target) 
 	then
 	StartAttack()
@@ -632,6 +753,18 @@ local function Utility()
 			end
 end		
  
+local function AimedMacro()
+		if castingAimed and not AimedMacroDone then 
+				-- while (startTime + 175) < GetTime() do --nothing for 200ms
+				-- end
+				RunMacroText("/cleartarget")
+				-- while (startTime + 350) < GetTime() do --nothing for another 200ms
+				-- end
+                RunMacroText("/targetlasttarget")
+				AimedMacroDone = true
+		end
+end
+ 
  
 --FuriousHowl by Pet
 local function petbuff()
@@ -653,6 +786,7 @@ end
  
 local function Shots()	
 	Locals()
+
 	
 	
 --Auto Shot		
@@ -744,14 +878,14 @@ local function Shots()
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
 			and not castingAShot
-			-- and reloadPercent <= 50
+			and not castingAimed
 			and reloadInMoment <= (reloadTime - 600) 
-		    and Spell.AimedShot:Cast(Target) 		
+		    -- and Spell.AimedShot:Cast(Target) 		
 		then
-			    RunMacroText("/cleartarget")
-                RunMacroText("/targetlasttarget")
-                return true
-
+				RunMacroText("/Cast !Auto Shot") 
+				Spell.AimedShot:Cast(Target) 
+			return true
+			
 		elseif Setting("Arcane if moving")
 		    and Target.Facing 
 		    and not Player.Casting
@@ -760,7 +894,8 @@ local function Shots()
 		    and Player.PowerPct > 4
 			and Player.PowerPct > TranqMana				
 		    and not (Target.CreatureType == "Totem") 
-		    and Player.Moving and Spell.ArcaneShot:Cast(Target)
+		    and Player.Moving 
+			and Spell.ArcaneShot:Cast(Target)
 		then
                 return true
         end	
@@ -768,23 +903,24 @@ local function Shots()
 --Aimed shot full Rotation
 		if Setting("Aimed Shot") 
 			and not Setting("Clipped Rotation") 
-			-- and reloadPercent <= 10
-			and not castingAShot
-			and reloadInMoment <= 200 
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 4
-			and Player.PowerPct > TranqMana				
+			and Player.PowerPct > TranqMana			
 		    and Target.TTD > 6
 		    and not (Target.CreatureType == "Totem") 
-		    and not Player.Moving 
-		    and Spell.AimedShot:Cast(Target) 		
+		    and not Player.Moving
+			and not castingAShot
+			and not castingAimed
+			and reloadInMoment <= 200  
+		    -- and Spell.AimedShot:Cast(Target) 		
 		then
-			    RunMacroText("/cleartarget")
-                RunMacroText("/targetlasttarget")			
-                return true
+				RunMacroText("/Cast !Auto Shot") 
+				Spell.AimedShot:Cast(Target) 
+			return true
+				
 		elseif Setting("Arcane if moving")
 		    and Target.Facing 
 		    and not Player.Casting
@@ -793,7 +929,8 @@ local function Shots()
 		    and Player.PowerPct > 4
 			and Player.PowerPct > TranqMana				
 		    and not (Target.CreatureType == "Totem") 
-		    and Player.Moving and Spell.ArcaneShot:Cast(Target)
+		    and Player.Moving 
+			and Spell.ArcaneShot:Cast(Target)
 		then
                 return true
         end	
@@ -804,6 +941,7 @@ local function Shots()
 		    and Target.Facing 
 		    and not Player.Casting
 		    and Spell.MultiShot:IsReady()
+			and Spell.AutoShot:LastCast()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 4
 			and Player.PowerPct > TranqMana	
@@ -859,14 +997,15 @@ end
 
 function Hunter.Rotation()
     Locals()
+	AimedMacro()
 	TranqshotMana()
 
 
 		if Utility() then
 			return true 
 		end
-	--and Target.ValidEnemy
-    if Target 	and Target.Distance < 41 then
+	-- and Target.ValidEnemy
+    if Target and Target.Distance < 41 then
 		if Defensive() then
 			return true
 		end
@@ -909,10 +1048,9 @@ function Hunter.Rotation()
         and not castingAShot
 		and Player.PowerPct > TranqMana 
 		and Player.PowerPct > 10
-        and Target.Distance < 100 
-        and Target.TTD > 10 
-		--and not Spell.HuntersMark:LastCast() 
-        --and not isMarkupcheck(Target,"Hunter's Mark")
+        and Target.Distance <= 48 
+        and Target.TTD > 12 
+		and not Markisup
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
         and Spell.HuntersMark:Cast(Target) then
@@ -927,16 +1065,18 @@ function Hunter.Rotation()
 --Shots fired or Switch Meele	
 		
 				
-		if Target.Facing and Setting("Seconds for PetAggro") == 0 and Target.Distance < 41 and Target.Distance > 8 then
+		if Target.Facing and (Setting("Seconds for PetAggro") == 0 or Setting("TargetsHP <") == 100) and Target.Distance < 41 and Target.Distance > 8 then
 		Shots()
 		elseif Target.Facing and Setting("Seconds for PetAggro") > 0 and CTimer >= Setting("Seconds for PetAggro") and Target.Distance < 41 and Target.Distance > 8 then 
 		Shots()
+		elseif Target.Facing and Setting("Target HP <") < 100 and Target.HP < Setting("Target HP <") and Target.Distance < 41 and Target.Distance > 8 then 
+		Shots()		
 		elseif Target.Facing and Target.Distance <= 8 and Target.Distance >= 6 then
 		StopAttack()
 		elseif Target.Facing and Target.Distance < 6 then
 		huntermeleeattacks()
-		
 		end	
+		
    	end
 end
 
@@ -969,7 +1109,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 	elseif(event == "ENCOUNTER_END") then
 		ENCOUNTER_END(encounterID, name, difficulty, size)
 	    EnrageNR = 0;
-	elseif(event == "CHAT_MSG_ADDON") then
-	    ifMSGfromDBM(prefix, msg, channel)
+	-- elseif(event == "CHAT_MSG_ADDON") then
+	    -- ifMSGfromDBM(prefix, msg, channel)
 	end
-end) 
+end)
