@@ -15,6 +15,8 @@ local BossIsEnraged = false
 
 local SendAddonMessage = C_ChatInfo.SendAddonMessage
 local BossName = nil;
+local fightingBoss = false;
+local threatPercent = 0;
 
 local quiverSpeed = 1.00;
 local aimedCastTime = 3500;
@@ -22,6 +24,7 @@ local multiCastTime = 500;
 local autoShotCastTime = 500;
 local reloadTime = 3000;
 local svreloadTime = 0;
+local feignDeathStartTime = 0;
 local castingAShot = false
 local castingAimed = false
 local AimedMacroDone = false
@@ -390,7 +393,8 @@ local function CombatLogEvent(...)
 				if DMW.Player.Target.ValidEnemy and UnitDebuff("target", i) == "Hunter's Mark" then
 					markedMobs[UnitGUID("target")] = UnitGUID("target")
 					break
-				else markedMobs[UnitGUID("target")] = nil
+				elseif DMW.Player.Target.ValidEnemy and UnitDebuff("target", i) ~= "Hunter's Mark" then
+				markedMobs[UnitGUID("target")] = nil
 				end
 			end
 		end
@@ -500,12 +504,13 @@ end
 -- Getting the Encounter Name
 local function ENCOUNTER_START(encounterID, name, difficulty, size)
 	name = BossName
+	fightingBoss = true
 	
 end
 -- Removing the Encounter Name
 local function ENCOUNTER_END(encounterID, name, difficulty, size)
 	BossName = nil
-	
+	fightingBoss = false
 end
 
 -- local function ifMSGfromDBM(prefix, ModPlusMsg, channel)
@@ -577,10 +582,46 @@ local function Defensive()
 end
 
 
-
-
 local function Utility()
 	Locals()
+	
+	if HUD.FeignDeath == 1 
+	and Target 
+	and Target.ValidEnemy
+	and infight	then
+		threatPercent = select(3, Target:UnitDetailedThreatSituation())
+		if threatPercent == nil then
+			threatPercent = 0
+		end
+	end
+	
+-- Feign Death
+	if HUD.FeignDeath == 1 
+	and Target 
+	and Target.ValidEnemy
+	and infight
+	--and Target:IsBoss()
+	and (UnitName("targettarget") == UnitName("player") or threatPercent >= 90)
+	and Spell.FeignDeath:IsReady() then
+		SpellStopCasting()
+		Spell.FeignDeath:Cast(Player)
+		feignDeathStartTime = GetTime() * 1000
+	       return true 
+	end
+	
+	-- if Spell.FeignDeath:LastCast()
+	-- and fightingBoss
+	-- and (GetTime() * 1000) >= (500 + feignDeathStartTime)
+		-- then
+			-- JumpOrAscendStart()
+			-- return true 
+	-- end	
+	
+-- Trinket Swap
+	
+	
+	
+	
 -- Pet management
 	if Setting("Call Pet") 
 	and (not Pet or Pet.Dead) 
@@ -603,7 +644,7 @@ local function Utility()
         return true
 	end
 
-	-- Revive Pet	find a way to check if we dont have active pet or dismissed it .
+	-- Revive Pet	find a way to check if we dont have active pet or dismissed it . 
 	--if Setting("Revive Pet") and (Pet.Dead) and Spell.RevivePet:Cast(Player) then
     --     return true 
 	--end
@@ -810,12 +851,16 @@ local function Shots()
 			and BossIsEnraged
 			and EnrageNR > 0
 	    	and (EnrageNR % Setting("Tranq Order")) == 0
-			and (Target.Name == BossName)
 			and Target.Facing 
 	    	and Target.Distance > 8
 	    	and not castingAShot
 	        and not Player.Casting
 	    	and not (Target.CreatureType == "Totem") 
+			and (DMW.Player.Target.Name == "Magmadar"
+			or DMW.Player.Target.Name == "Flamegor"
+			or DMW.Player.Target.Name == "Chromaggus"
+			or DMW.Player.Target.Name == "Princess Huhuran"
+			or DMW.Player.Target.Name == "Gluth")
 	    	and Spell.TranquilizingShot:Cast(Target) then
 
 				return true
@@ -872,9 +917,9 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4
+		    and Player.PowerPct > 3
 			and Player.PowerPct > TranqMana			
-		    and Target.TTD > 6
+		    and Target.TTD > 5
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
 			and not castingAShot
@@ -891,7 +936,7 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4
+		    and Player.PowerPct > 3
 			and Player.PowerPct > TranqMana				
 		    and not (Target.CreatureType == "Totem") 
 		    and Player.Moving 
@@ -907,9 +952,9 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4
+		    and Player.PowerPct > 3
 			and Player.PowerPct > TranqMana			
-		    and Target.TTD > 6
+		    and Target.TTD > 5
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
 			and not castingAShot
@@ -926,7 +971,7 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4
+		    and Player.PowerPct > 3
 			and Player.PowerPct > TranqMana				
 		    and not (Target.CreatureType == "Totem") 
 		    and Player.Moving 
@@ -943,7 +988,7 @@ local function Shots()
 		    and Spell.MultiShot:IsReady()
 			and Spell.AutoShot:LastCast()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 4
+		    and Player.PowerPct > 3
 			and Player.PowerPct > TranqMana	
 		    and Target.TTD > 2
 		    and not (Target.CreatureType == "Totem") 
@@ -1005,7 +1050,7 @@ function Hunter.Rotation()
 			return true 
 		end
 	-- and Target.ValidEnemy
-    if Target and Target.Distance < 41 then
+    if Target and Target.ValidEnemy and Target.Distance < 41 then
 		if Defensive() then
 			return true
 		end
@@ -1042,7 +1087,7 @@ function Hunter.Rotation()
 		
 --Hunter's Mark
         if Setting("HuntersMark")
-		and HUD.Mark == 1 
+		-- and HUD.Mark == 1 
         and Target.Facing 
         and not Player.Casting
         and not castingAShot
@@ -1064,17 +1109,42 @@ function Hunter.Rotation()
 		
 --Shots fired or Switch Meele	
 		
-				
-		if Target.Facing and (Setting("Seconds for PetAggro") == 0 or Setting("TargetsHP <") == 100) and Target.Distance < 41 and Target.Distance > 8 then
-		Shots()
-		elseif Target.Facing and Setting("Seconds for PetAggro") > 0 and CTimer >= Setting("Seconds for PetAggro") and Target.Distance < 41 and Target.Distance > 8 then 
-		Shots()
-		elseif Target.Facing and Setting("Target HP <") < 100 and Target.HP < Setting("Target HP <") and Target.Distance < 41 and Target.Distance > 8 then 
-		Shots()		
-		elseif Target.Facing and Target.Distance <= 8 and Target.Distance >= 6 then
-		StopAttack()
-		elseif Target.Facing and Target.Distance < 6 then
-		huntermeleeattacks()
+		
+		if Target.Facing 
+		and Setting("Seconds for PetAggro") == 0 
+		and Setting("Target HP <") == 100 
+		and Target.Distance < 41 
+		and Target.Distance > 8 then
+			-- Shots()
+			return true
+		
+		elseif Target.Facing
+		and Target.Distance < 41 
+		and Target.Distance > 8		
+		and (Setting("Seconds for PetAggro") > 0 or Setting("Target HP <") < 100)
+			then
+			if Setting("Seconds for PetAggro") > 0
+			and CTimer >= Setting("Seconds for PetAggro")
+				then
+				Shots()
+				return true
+			elseif Setting("Target HP <") < 100
+			and Target.HP <= Setting("Target HP <")
+				then
+				Shots()
+				return true
+			end
+
+		elseif Target.Facing 
+		and Target.Distance <= 8 
+		and Target.Distance >= 6 then
+			StopAttack()
+			return true
+		
+		elseif Target.Facing 
+		and Target.Distance < 6 then
+			huntermeleeattacks()
+			return true
 		end	
 		
    	end

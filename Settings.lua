@@ -36,9 +36,9 @@ function Hunter.Settings()
 				},
 				
 			[3]= {
-               Mark = {
-                    [1] = {Text = "Mark |cFF00FF00On", Tooltip = ""},
-                    [2] = {Text = "Mark |cffff0000Off", Tooltip = ""}
+               FeignDeath = {
+                    [1] = {Text = "FeignDeath |cFF00FF00On", Tooltip = ""},
+                    [2] = {Text = "FeignDeath |cffff0000Off", Tooltip = ""}
 						 }
 				},		
 					
