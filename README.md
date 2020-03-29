@@ -1,6 +1,13 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
+## 29.03.2020
+
+* added Feign Death (incl. Main Switch, 90% Aggro or if Aggro)
+* fixed wait for Pet Aggro with Target.HP (was not working)
+* removed Hunters Mark main switch cause Mark is working since Update from 22.03.2020
+* BUG: Tranq function recognizes the enrage but dont fires the shot (need to have a look)
+
 ## 22.03.2020
 
 * added second aggro setting for farming with HP of the Target
