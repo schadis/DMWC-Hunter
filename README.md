@@ -1,6 +1,11 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
+## 03.04.2020
+
+* added delay and pet pullback when queued feign death happens for trinket swapping (Itemrack)
+* minor changes
+
 ## 29.03.2020
 
 * added Feign Death (incl. Main Switch, 90% Aggro or if Aggro)
