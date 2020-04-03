@@ -182,18 +182,6 @@ local function GetQuiverInfo()
 	updateRequired = false;
 end 
 
---Not working cause it is not updated reliable
--- local function isMarkupcheck(unitId, checkName)
-	-- for i=1,16,1  do
-		-- local name, _, _, _, _, _, _, UnitAura(unitId, i);
-		-- if (name == checkName) then
-			-- return true
-		-- elseif (name == nil ) then		
-        -- break -- this check for nil is for efficiency but might cause it not to work; I don't know
-		-- end
-	-- return false
-	-- end
--- end
  
  local function CalculateShootTimes()
 
@@ -410,8 +398,6 @@ local function CombatLogEvent(...)
 			end	
 		end
 		
-
-		
 		if DMW.Player.Target ~= nil 
 		    and DMW.Player.Target.ValidEnemy 
 		    and DMW.Player.Target.Distance < 50 
@@ -600,27 +586,28 @@ local function Utility()
 	and Target 
 	and Target.ValidEnemy
 	and infight
+	and CTimer > 5
 	--and Target:IsBoss()
 	and (UnitName("targettarget") == UnitName("player") or threatPercent >= 90)
 	and Spell.FeignDeath:IsReady() then
 		SpellStopCasting()
 		Spell.FeignDeath:Cast(Player)
-		feignDeathStartTime = GetTime() * 1000
+		
 	       return true 
 	end
 	
-	-- if Spell.FeignDeath:LastCast()
-	-- and fightingBoss
-	-- and (GetTime() * 1000) >= (500 + feignDeathStartTime)
-		-- then
-			-- JumpOrAscendStart()
-			-- return true 
-	-- end	
+-- Trinket Swap / Manual Cast Feign Death
 	
--- Trinket Swap
-	
-	
-	
+	if Spell.FeignDeath:LastCast()
+	and fightingBoss then
+		feignDeathStartTime = GetTime() * 1000
+		PetPassiveMode()
+			while (GetTime() * 1000) <= (700 + feignDeathStartTime) do
+			-- nothing
+			end
+		JumpOrAscendStart()
+		return true 
+	end
 	
 -- Pet management
 	if Setting("Call Pet") 
@@ -1027,9 +1014,10 @@ local function huntermeleeattacks()
 		end			
 --Raport Strike
 		if  Target.Facing and  Target.Distance < 5 and  Target.TTD > 2 and Spell.RaptorStrike:Cast(Target) then
+			RunMacroText("/cast Wing Clip(Rank 1)")
 			return true	
 		end
---Wing Clip
+--Wing Clip and not Debuff.WingClip:Exist(Target)
 		if  Target.Facing and  Target.Distance < 5 and not Debuff.WingClip:Exist(Target) and not (Target.CreatureType == "Totem") and Spell.WingClip:Cast(Target) then
 			return true	
 		end	
@@ -1087,14 +1075,13 @@ function Hunter.Rotation()
 		
 --Hunter's Mark
         if Setting("HuntersMark")
-		-- and HUD.Mark == 1 
         and Target.Facing 
         and not Player.Casting
         and not castingAShot
 		and Player.PowerPct > TranqMana 
 		and Player.PowerPct > 10
         and Target.Distance <= 48 
-        and Target.TTD > 12 
+        and Target.TTD > 10 
 		and not Markisup
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
@@ -1115,7 +1102,7 @@ function Hunter.Rotation()
 		and Setting("Target HP <") == 100 
 		and Target.Distance < 41 
 		and Target.Distance > 8 then
-			-- Shots()
+			Shots()
 			return true
 		
 		elseif Target.Facing
