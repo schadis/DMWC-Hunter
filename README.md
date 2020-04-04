@@ -5,7 +5,6 @@
 
 * added delay and pet pullback when queued feign death happens for trinket swapping (Itemrack)
 * minor changes
-
 * Known BUGS: Hunters Mark immun Targets (BWL Spellbinders) are a problem (infinite recasting)
 
 ## 29.03.2020
