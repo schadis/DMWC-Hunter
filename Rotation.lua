@@ -602,7 +602,9 @@ local function Utility()
 	and fightingBoss then
 		feignDeathStartTime = GetTime() * 1000
 		PetPassiveMode()
-			while (GetTime() * 1000) <= (700 + feignDeathStartTime) do
+			while (GetTime() * 1000) <= (1500 + feignDeathStartTime) do
+				if Player.CombatLeftTime * 1000 >= 750 
+					then break end
 			-- nothing
 			end
 		JumpOrAscendStart()
