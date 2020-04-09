@@ -598,18 +598,18 @@ local function Utility()
 	
 -- Trinket Swap / Manual Cast Feign Death
 	
-	if Spell.FeignDeath:LastCast()
-	and fightingBoss then
-		feignDeathStartTime = GetTime() * 1000
-		PetPassiveMode()
-			while (GetTime() * 1000) <= (1500 + feignDeathStartTime) do
-				if Player.CombatLeftTime * 1000 >= 750 
-					then break end
+	--if Spell.FeignDeath:LastCast()
+	--and fightingBoss then
+	--	feignDeathStartTime = GetTime() * 1000
+	--	PetPassiveMode()
+	--		while (GetTime() * 1000) <= (1500 + feignDeathStartTime) do
+	--			if Player.CombatLeftTime * 1000 >= 750 
+	--				then break end
 			-- nothing
-			end
-		JumpOrAscendStart()
-		return true 
-	end
+	--		end
+	--	JumpOrAscendStart()
+	--	return true 
+	--end
 	
 -- Pet management
 	if Setting("Call Pet") 
