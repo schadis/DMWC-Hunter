@@ -580,7 +580,7 @@ local function Utility()
 			threatPercent = 0
 		end
 	end
-	
+
 -- Feign Death
 	if HUD.FeignDeath == 1 
 	and Target 
@@ -598,18 +598,18 @@ local function Utility()
 	
 -- Trinket Swap / Manual Cast Feign Death
 	
-	--if Spell.FeignDeath:LastCast()
-	--and fightingBoss then
-	--	feignDeathStartTime = GetTime() * 1000
-	--	PetPassiveMode()
-	--		while (GetTime() * 1000) <= (1500 + feignDeathStartTime) do
-	--			if Player.CombatLeftTime * 1000 >= 750 
-	--				then break end
+	-- if Spell.FeignDeath:LastCast()
+	-- and fightingBoss then
+		-- feignDeathStartTime = GetTime() * 1000
+		-- PetPassiveMode()
+			-- while (GetTime() * 1000) <= (1500 + feignDeathStartTime) do
+				-- if Player.CombatLeftTime * 1000 >= 750 
+					-- then break end
 			-- nothing
-	--		end
-	--	JumpOrAscendStart()
-	--	return true 
-	--end
+			-- end
+		-- JumpOrAscendStart()
+		-- return true 
+	-- end
 	
 -- Pet management
 	if Setting("Call Pet") 
@@ -629,6 +629,7 @@ local function Utility()
 	and Player.PowerPct > 30 
 	and not castingAShot
 	and not Player.Casting
+	and not Spell.MendPet:LastCast() 
 	and Spell.MendPet:Cast(Pet) then
         return true
 	end
@@ -785,12 +786,9 @@ end
  
 local function AimedMacro()
 		if castingAimed and not AimedMacroDone then 
-				-- while (startTime + 175) < GetTime() do --nothing for 200ms
-				-- end
-				RunMacroText("/cleartarget")
-				-- while (startTime + 350) < GetTime() do --nothing for another 200ms
-				-- end
-                RunMacroText("/targetlasttarget")
+				--C_Timer.After(0.1, ) 
+				ClearTarget()
+				C_Timer.After(0.1, TargetLastTarget())
 				AimedMacroDone = true
 		end
 end
@@ -914,10 +912,10 @@ local function Shots()
 			and not castingAShot
 			and not castingAimed
 			and reloadInMoment <= (reloadTime - 600) 
-		    -- and Spell.AimedShot:Cast(Target) 		
+		    and Spell.AimedShot:Cast(Target) 		
 		then
-				RunMacroText("/Cast !Auto Shot") 
-				Spell.AimedShot:Cast(Target) 
+				-- RunMacroText("/Cast !Auto Shot") 
+				-- Spell.AimedShot:Cast(Target) 
 			return true
 			
 		elseif Setting("Arcane if moving")
@@ -949,10 +947,10 @@ local function Shots()
 			and not castingAShot
 			and not castingAimed
 			and reloadInMoment <= 200  
-		    -- and Spell.AimedShot:Cast(Target) 		
+		    and Spell.AimedShot:Cast(Target) 		
 		then
-				RunMacroText("/Cast !Auto Shot") 
-				Spell.AimedShot:Cast(Target) 
+				-- RunMacroText("/Cast !Auto Shot") 
+				-- Spell.AimedShot:Cast(Target) 
 			return true
 				
 		elseif Setting("Arcane if moving")
@@ -1084,6 +1082,7 @@ function Hunter.Rotation()
 		and Player.PowerPct > 10
         and Target.Distance <= 48 
         and Target.TTD > 10 
+		and not Target.Name == ("Lava Reaver" or "Lava Surger" or "Lava Elemental" or "Blackwing Spellbinder")
 		and not Markisup
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
