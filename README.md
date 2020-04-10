@@ -1,6 +1,12 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
+## 10.04.2020
+
+* fixed AimedMacro
+* blacklisted HunterMark immune Targets (gimme feedback about others plx)
+* comment out the feign death petpullback part cause it was crashing the game
+
 ## 03.04.2020
 
 * added delay and pet pullback when queued feign death happens for trinket swapping (Itemrack)
