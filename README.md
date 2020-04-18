@@ -5,7 +5,7 @@
 
 * added Error fix for C_Timer not working at Aimed Macro
 * added a Allways HuntersMark checkbox, which will ignore Time to die
-* (Rotation not tested)
+* fixed Hunters Mark
 
 ## 10.04.2020
 
