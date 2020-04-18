@@ -1,6 +1,12 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
+## 18.04.2020
+
+-added Error fix for C_Timer not working at Aimed Macro
+-added a Allways HuntersMark checkbox, which will ignore Time to die
+-(Rotation not tested)
+
 ## 10.04.2020
 
 * fixed AimedMacro
