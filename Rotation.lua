@@ -1032,14 +1032,19 @@ end
 
 
 function Hunter.Rotation()
+	
     Locals()
+	
 	AimedMacro()
+	
 	TranqshotMana()
+	
 
 
 		if Utility() then
 			return true 
 		end
+
 	-- and Target.ValidEnemy
     if Target and Target.ValidEnemy and Target.Distance < 41 then
 		if Defensive() then
@@ -1050,7 +1055,7 @@ function Hunter.Rotation()
 		if Setting("Aspect of the Hawk") and Target.Facing and not Player.Casting and not castingAShot and Target.Distance > 8 and (not Buff.AspectOfTheHawk:Exist(Player) or Buff.AspectOfTheMonkey:Exist(Player)) and Player.PowerPct > 30 and Spell.AspectOfTheHawk:Cast(Player) then
 			return true
 		end	 
-		
+	
 --Pet Auto		
         if Setting("Auto Pet Attack")
 			and HUD.PetAttack == 1 
@@ -1076,16 +1081,17 @@ function Hunter.Rotation()
                 PetAttack() 
         end
 		
+		
 --Hunter's Mark
-        if Setting("HuntersMark") or Setting("Allways HuntersMark")
+        if (Setting("HuntersMark") or Setting("Allways HuntersMark"))
         and Target.Facing 
         and not Player.Casting
         and not castingAShot
 		and Player.PowerPct > TranqMana 
 		and Player.PowerPct > 10
         and Target.Distance <= 48 
-        and Target.TTD > 10 or Setting("Allways HuntersMark")
-		and not Target.Name == ("Lava Reaver" or "Lava Surger" or "Lava Elemental" or "Blackwing Spellbinder")
+        and (Target.TTD > 7 or Setting("Allways HuntersMark"))
+		and not (Target.Name == ("Lava Reaver" or "Lava Surger" or "Lava Elemental" or "Blackwing Spellbinder"))
 		and not Markisup
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
@@ -1094,16 +1100,14 @@ function Hunter.Rotation()
 				
         end
 		
-	
 		petbuff()
 
 		
 --Shots fired or Switch Meele	
 		
-		
+
 		if Target.Facing 
-		and Setting("Seconds for PetAggro") == 0 
-		and Setting("Target HP <") == 100 
+		and not Setting("Wait until PetAggro")
 		and Target.Distance < 41 
 		and Target.Distance > 8 then
 			Shots()
@@ -1111,7 +1115,8 @@ function Hunter.Rotation()
 		
 		elseif Target.Facing
 		and Target.Distance < 41 
-		and Target.Distance > 8		
+		and Target.Distance > 8	
+		and Setting("Wait until PetAggro")
 		and (Setting("Seconds for PetAggro") > 0 or Setting("Target HP <") < 100)
 			then
 			if Setting("Seconds for PetAggro") > 0
