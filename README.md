@@ -3,13 +3,13 @@
 
 ## 18.04.2020
 
--added Error fix for C_Timer not working at Aimed Macro
--added a Allways HuntersMark checkbox, which will ignore Time to die
--(Rotation not tested)
+* added Error fix for C_Timer not working at Aimed Macro
+* added a Allways HuntersMark checkbox, which will ignore Time to die
+* (Rotation not tested)
 
 ## 10.04.2020
 
-* fixed AimedMacro
+cfixed AimedMacro
 * blacklisted HunterMark immune Targets (gimme feedback about others plx)
 * comment out the feign death petpullback part cause it was crashing the game
 
