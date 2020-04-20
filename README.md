@@ -1,6 +1,11 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
+## 20.04.2020
+
+* small changes to hunters mark table and conditions for casting
+* use the allways hunters mark if you want to ignore time to die and target health
+
 ## 18.04.2020
 
 * added Error fix for C_Timer not working at Aimed Macro
