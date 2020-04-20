@@ -10,7 +10,7 @@ local ShotTime = GetTime()
 local EnrageNR = 0;
 local TranqMana = 0;
 local Markisup = false
-markedMobs = {}
+local markedMobs = {}
 local BossIsEnraged = false
 
 local SendAddonMessage = C_ChatInfo.SendAddonMessage
@@ -376,7 +376,7 @@ local function CombatLogEvent(...)
 	
 --check if Target has Mark	
 		if DMW.Player.Target ~= nil 
-		    and DMW.Player.Target.Distance < 50 then
+		and DMW.Player.Target.Distance < 50 then
 			for i = 1, 16 do
 				if UnitGUID("target") == nil then
 					break				
@@ -384,18 +384,20 @@ local function CombatLogEvent(...)
 					markedMobs[UnitGUID("target")] = UnitGUID("target")
 					break
 				elseif DMW.Player.Target.ValidEnemy and UnitDebuff("target", i) ~= "Hunter's Mark" then
-				markedMobs[UnitGUID("target")] = nil
+					markedMobs[UnitGUID("target")] = nil
 				end
 			end
 		end
 		
-		if DMW.Player.Target ~= nil then
+		if DMW.Player.Target ~= nil 
+		and DMW.Player.Target.Distance < 50 then
 			for k, v in pairs(markedMobs) do
-				if v == UnitGUID("target") then
-				Markisup = true
-				break
-				else
-				Markisup = false
+				if v == UnitGUID("target") 
+					then
+					Markisup = true
+					break
+				elseif v ~= UnitGUID("target") then
+					Markisup = false
 				end
 			end	
 		end
@@ -1038,7 +1040,8 @@ function Hunter.Rotation()
 	AimedMacro()
 	
 	TranqshotMana()
-	
+
+	--print(Target.HP/Target.HealthMax)
 
 
 		if Utility() then
@@ -1081,16 +1084,16 @@ function Hunter.Rotation()
                 PetAttack() 
         end
 		
-		
---Hunter's Mark
-        if (Setting("HuntersMark") or Setting("Allways HuntersMark"))
+
+--Hunter's Mark RAID
+		if (Setting("HuntersMark") or Setting("Allways HuntersMark"))
         and Target.Facing 
         and not Player.Casting
         and not castingAShot
 		and Player.PowerPct > TranqMana 
 		and Player.PowerPct > 10
         and Target.Distance <= 48 
-        and (Target.TTD > 7 or Setting("Allways HuntersMark"))
+        and (Target.Health >= 20000 or Target.TTD > 8) or Setting("Allways HuntersMark"))
 		and not (Target.Name == ("Lava Reaver" or "Lava Surger" or "Lava Elemental" or "Blackwing Spellbinder"))
 		and not Markisup
 		and not Debuff.HuntersMark:Exist(Target) 
