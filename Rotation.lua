@@ -1093,7 +1093,7 @@ function Hunter.Rotation()
 		and Player.PowerPct > TranqMana 
 		and Player.PowerPct > 10
         and Target.Distance <= 48 
-        and (Target.Health >= 20000 or Target.TTD > 8) or Setting("Allways HuntersMark"))
+        and ((Target.Health >= 20000 or Target.TTD > 8) or Setting("Allways HuntersMark"))
 		and not (Target.Name == ("Lava Reaver" or "Lava Surger" or "Lava Elemental" or "Blackwing Spellbinder"))
 		and not Markisup
 		and not Debuff.HuntersMark:Exist(Target) 
