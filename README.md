@@ -14,7 +14,7 @@
 
 ## 10.04.2020
 
-cfixed AimedMacro
+* fixed AimedMacro
 * blacklisted HunterMark immune Targets (gimme feedback about others plx)
 * comment out the feign death petpullback part cause it was crashing the game
 
