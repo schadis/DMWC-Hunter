@@ -61,10 +61,10 @@ local function EnragedBoss()
 		then
 		for _, Unit in ipairs(Enemy41Y) do
 			if Unit:IsBoss()
-			and Unit:AuraByID(19451, true)	-- SpellIds from Enrage Magmadar,
+			and (Unit:AuraByID(19451, true)	-- SpellIds from Enrage Magmadar,
 			or Unit:AuraByID(23128, true)	-- Chromagus,
 			or Unit:AuraByID(23342, true)	-- Flamegore,
-			or Unit:AuraByID(26051, true) 	-- Princess Huhuran
+			or Unit:AuraByID(26051, true)) 	-- Princess Huhuran
 			-- or Unit:AuraByID(???, true)	-- Gluth???
 				then						
 				BossEnraged = true
@@ -81,17 +81,17 @@ end
 
 local function Tranqorder()
 	if Setting("Tranq Order") == 1
-	and EnrageNR == 1 or EnrageNR == 2 or EnrageNR == 3 or EnrageNR == 4 or EnrageNR == 5 or EnrageNR == 6 or EnrageNR == 7 or EnrageNR == 8 or EnrageNR == 9 or EnrageNR == 10 or EnrageNR == 11 or EnrageNR == 12 or EnrageNR == 13 or EnrageNR == 14 or EnrageNR == 15 or EnrageNR == 16 or EnrageNR == 17 or EnrageNR == 18 or EnrageNR == 19 or EnrageNR == 20
+	and (EnrageNR == 1 or EnrageNR == 2 or EnrageNR == 3 or EnrageNR == 4 or EnrageNR == 5 or EnrageNR == 6 or EnrageNR == 7 or EnrageNR == 8 or EnrageNR == 9 or EnrageNR == 10 or EnrageNR == 11 or EnrageNR == 12 or EnrageNR == 13 or EnrageNR == 14 or EnrageNR == 15 or EnrageNR == 16 or EnrageNR == 17 or EnrageNR == 18 or EnrageNR == 19 or EnrageNR == 20)
 		then
 		MyTranq = true
 		return true
 	elseif Setting("Tranq Order") == 2
-	and EnrageNR ==2 or EnrageNR == 4 or EnrageNR == 6 or EnrageNR == 8 or EnrageNR == 10 or EnrageNR == 12 or EnrageNR == 14 or EnrageNR == 16 or EnrageNR == 18 or EnrageNR == 20
+	and (EnrageNR ==2 or EnrageNR == 4 or EnrageNR == 6 or EnrageNR == 8 or EnrageNR == 10 or EnrageNR == 12 or EnrageNR == 14 or EnrageNR == 16 or EnrageNR == 18 or EnrageNR == 20)
 		then
 		MyTranq = true
 		return true
 	elseif Setting("Tranq Order") == 2
-	and EnrageNR == 3 or EnrageNR == 6 or EnrageNR == 9 or EnrageNR == 12 or EnrageNR == 15 or EnrageNR == 18 or EnrageNR == 21 or EnrageNR == 24 or EnrageNR == 27 or EnrageNR == 30
+	and (EnrageNR == 3 or EnrageNR == 6 or EnrageNR == 9 or EnrageNR == 12 or EnrageNR == 15 or EnrageNR == 18 or EnrageNR == 21 or EnrageNR == 24 or EnrageNR == 27 or EnrageNR == 30)
 		then
 		MyTranq = true
 		return true
@@ -114,7 +114,7 @@ local function Locals()
     Talent = Player.Talents
     Trait = Player.Traits
     Item = Player.Items
-    Target = Player.Target or false
+    Target = (Player.Target or false)
     HUD = DMW.Settings.profile.HUD
     CDs = Player:CDs()
 	GCD = Player:GCD()
@@ -343,7 +343,7 @@ local function CombatLogEvent(...)
 		local why = select(15, ...);
 		local realFail = false
 
-		if why == "Not yet recovered" or "Another action is in progress" then 
+		if why == ("Not yet recovered" or "Another action is in progress") then 
 		realFail = false
 		else 
 		realFail = true
@@ -370,7 +370,7 @@ local function CombatLogEvent(...)
 	elseif(subEvent == "SPELL_AURA_APPLIED") then
 		local spellId = select(12, ...)
 		if (sourceName == "Magmadar" or sourceName == "Flamegor" or sourceName == "Chromaggus" or sourceName == "Princess Huhuran" or sourceName == "Gluth")
-		and spellId == 19451 or spellId == 23128 or spellId == 23342 or spellId == 26051
+		and (spellId == 19451 or spellId == 23128 or spellId == 23342 or spellId == 26051)
 			then
 			EnrageStartTime = GetTime() * 1000
 			EnrageNR = EnrageNR + 1
@@ -381,7 +381,7 @@ local function CombatLogEvent(...)
 	elseif(subEvent == "SPELL_AURA_REMOVED") then
 		local spellId = select(12, ...)
 		if (sourceName == "Magmadar" or sourceName == "Flamegor" or sourceName == "Chromaggus" or sourceName == "Princess Huhuran" or sourceName == "Gluth")
-		and spellId == 19451 or spellId == 23128 or spellId == 23342 or spellId == 26051
+		and (spellId == 19451 or spellId == 23128 or spellId == 23342 or spellId == 26051)
 		then
 		EnrageStopTime = GetTime() * 1000
 		BossEnraged = false
@@ -490,12 +490,12 @@ local function ReloadPercentage()
 	CalculateShootTimes()
 	if isReloading then
 		reloadInMoment = (GetTime() * 1000 - reloadStarTime)
-		if reloadInMoment < 0 or reloadInMoment > reloadTime  then
+		if (reloadInMoment < 0 or reloadInMoment > reloadTime)  then
 		reloadInMoment = 0
 		isReloading = false
 		end
 		reloadPercent = (100 * (GetTime() * 1000 - reloadStarTime) / reloadTime)
-		if reloadPercent > 100 or reloadPercent < 0 then
+		if (reloadPercent > 100 or reloadPercent < 0) then
 		reloadPercent = 0
 		isReloading = false
 		end
@@ -785,7 +785,7 @@ local function FeignSwap()
 			if Setting("Swap TrinketSlot 1") ~= 1
 				and not swapfinishedslot1
 				and GetInventoryItemID("player", slotId1) ==  trinkettoswapout1()
-				and Item.DevilsaurEye:Equipped() or Item.JomGabbar:Equipped() or Item.Earthstrike:Equipped() or Item.BadgeoftheSwarmguard:Equipped()
+				and (Item.DevilsaurEye:Equipped() or Item.JomGabbar:Equipped() or Item.Earthstrike:Equipped() or Item.BadgeoftheSwarmguard:Equipped())
 				and not ReadyCooldown()
 				then 
 					EquipItemByName(trinkettoswap1(), slotId1)
@@ -797,7 +797,7 @@ local function FeignSwap()
 			if Setting("Swap TrinketSlot 2") ~= 1
 				and not swapfinishedslot2
 				and GetInventoryItemID("player", slotId2) ==  trinkettoswapout2() 
-				and Item.DevilsaurEye:Equipped() or Item.JomGabbar:Equipped() or Item.Earthstrike:Equipped() or Item.BadgeoftheSwarmguard:Equipped()
+				and (Item.DevilsaurEye:Equipped() or Item.JomGabbar:Equipped() or Item.Earthstrike:Equipped() or Item.BadgeoftheSwarmguard:Equipped())
 				and not ReadyCooldown()
 					then 
 						EquipItemByName(trinkettoswap2(), slotId2)
@@ -1108,7 +1108,8 @@ local function Utility()
 	if Setting("Call Pet") 
 	and (not Pet or Pet.Dead) 
 	and not castingAShot
-	and not Player.Casting	
+	and not Player.Casting
+    and not castingAShot	
 	and Spell.CallPet:Cast(Player) then
             return true 
 	end
@@ -1146,7 +1147,9 @@ local function Utility()
 -- Trueshot Selfbuff
 
 	if Setting("TrueShot Buff") 
-	and not Player.Combat 
+	and not Player.Combat
+	and not Player.Casting
+    and not castingAShot	
 	and not Buff.TrueshotAura:Exist(Player) 
 	and Player.PowerPct > 80 
 	and Spell.TrueshotAura:Cast(Player) then
@@ -1156,6 +1159,8 @@ local function Utility()
 -- Sapper Charge
 	if Setting("Use Sapper Charge")
 	and Player.Combat
+	and not Player.Casting
+    and not castingAShot
 	and Enemy10YC ~= nil
 	and Enemy10YC >= Setting("Enemys 10Y")
 	and GetItemCount(Item.GoblinSapperCharge.ItemID) >= 1
@@ -1169,6 +1174,8 @@ local function Utility()
 	if Setting("Use Trowables") >= 1
 	and Target
 	and Player.Combat
+	and not Player.Casting
+    and not castingAShot
 	and Target5YC ~= nil
 	and Target5YC >= Setting("Enemys 5Y around Target")
 	and Target.Facing
@@ -1236,7 +1243,7 @@ local function Utility()
 
 -- Use best available Healf potion --
 	if Setting("Use Best HP Potion") then
-		if HP <= Setting("Use Potion at #% HP") and Player.Combat then
+		if HP <= Setting("Use Potion at #% HP") and Player.Combat and not Player.Casting and not castingAShot then
 			if GetItemCount(13446) >= 1 and GetItemCooldown(13446) == 0 then
 				name = GetItemInfo(13446)
 				RunMacroText("/use " .. name)
@@ -1266,7 +1273,9 @@ local function Utility()
 	end
   
 --Use "Healthstone" 
-   if Setting("Healthstone") 
+	if Setting("Healthstone")
+	and not Player.Casting
+    and not castingAShot
     and HP < Setting("Use Healthstone at #% HP") 
     and (Item.MajorHealthstone:Use(Player) 
     or Item.GreaterHealthstone:Use(Player) 
@@ -1279,7 +1288,7 @@ local function Utility()
 
 	
 -- Use Demonic or Dark Rune --
-	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 and not castingAShot then
+	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 	and not Player.Casting and not castingAShot then
 		if Power <= Setting("Use Rune at #% Mana") and Player.Combat then
 			if GetItemCount(12662) >= 1 and GetItemCooldown(12662) == 0 then
 				name = GetItemInfo(12662)
@@ -1294,7 +1303,7 @@ local function Utility()
 	end	
 
 -- Use best available Mana potion --
-	if Setting("Use Best Mana Potion") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and not castingAShot then
+	if Setting("Use Best Mana Potion") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() 	and not Player.Casting and not castingAShot then
 		if Power <= Setting("Use Potion at #% Mana") and Player.Combat then
 			if GetItemCount(13444) >= 1 and GetItemCooldown(13444) == 0 then
 				name = GetItemInfo(13444)
