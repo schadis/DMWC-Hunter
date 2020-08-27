@@ -1,6 +1,24 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
+## Todo: 
+
+* ??? Tell me more
+
+## Changelog
+
+## 27.08.2020
+
+* added engineering items (sapper charge, nades, dynamite) !!! will work with my DMWC fork or after merge!!!
+* added trinket swapping selectable...atm only once after burst rotation (missing buffID of Earthstrike, JomGabbar and BadgeoftheSwarmguard) 
+* tried to make traqshot working correct(needs testing)
+* added switches for melee attacks
+* will use aspekt of the wild (hawk checked) wenn fighting huhuran or viscidus
+* blacklisted Emperor Vek AQ,Lava Reaver,Lava Surger,Lava Elemental,Blackwing Spellbinder for hunters mark
+* added my worldbuff sniper (will log you out after you get the buff, pls only chek one buff at a time)
+* added Autofacing option
+* added autotarget Raidmarks if in range for shots in order from skull to star after that for meele(https://wow.gamepedia.com/API_GetRaidTargetIndex)
+
 ## 20.04.2020
 
 * small changes to hunters mark table and conditions for casting
