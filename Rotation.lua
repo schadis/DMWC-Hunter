@@ -55,6 +55,51 @@ local function EnemiesAroundTarget()
 end
  
 	--------------------------------------------------------------------------	
+
+local function EnragedBoss()
+	if Enemy41YC >=1 
+		then
+		for _, Unit in ipairs(Enemy41Y) do
+			if Unit:IsBoss()
+			and Unit:AuraByID(19451, true)	-- SpellIds from Enrage Magmadar,
+			or Unit:AuraByID(23128, true)	-- Chromagus,
+			or Unit:AuraByID(23342, true)	-- Flamegore,
+			or Unit:AuraByID(26051, true) 	-- Princess Huhuran
+			-- or Unit:AuraByID(???, true)	-- Gluth???
+				then						
+				BossEnraged = true
+				if Setting("Enraged by Unit:Aura") then print("Enraged by Unit:Aura") end
+				return true
+			end
+		end
+	end
+	BossEnraged = false
+	return false
+end
+
+	--------------------------------------------------------------------------	
+
+local function Tranqorder()
+	if Setting("Tranq Order") == 1
+	and EnrageNR == 1 or EnrageNR == 2 or EnrageNR == 3 or EnrageNR == 4 or EnrageNR == 5 or EnrageNR == 6 or EnrageNR == 7 or EnrageNR == 8 or EnrageNR == 9 or EnrageNR == 10 or EnrageNR == 11 or EnrageNR == 12 or EnrageNR == 13 or EnrageNR == 14 or EnrageNR == 15 or EnrageNR == 16 or EnrageNR == 17 or EnrageNR == 18 or EnrageNR == 19 or EnrageNR == 20
+		then
+		MyTranq = true
+		return true
+	elseif Setting("Tranq Order") == 2
+	and EnrageNR ==2 or EnrageNR == 4 or EnrageNR == 6 or EnrageNR == 8 or EnrageNR == 10 or EnrageNR == 12 or EnrageNR == 14 or EnrageNR == 16 or EnrageNR == 18 or EnrageNR == 20
+		then
+		MyTranq = true
+		return true
+	elseif Setting("Tranq Order") == 2
+	and EnrageNR == 3 or EnrageNR == 6 or EnrageNR == 9 or EnrageNR == 12 or EnrageNR == 15 or EnrageNR == 18 or EnrageNR == 21 or EnrageNR == 24 or EnrageNR == 27 or EnrageNR == 30
+		then
+		MyTranq = true
+		return true
+	end
+	MyTranq = false
+	return false
+end
+	--------------------------------------------------------------------------	 
 	
 local function Locals()
     Player = DMW.Player
@@ -330,6 +375,7 @@ local function CombatLogEvent(...)
 			EnrageStartTime = GetTime() * 1000
 			EnrageNR = EnrageNR + 1
 			BossEnraged = true
+			if Setting("Enraged by Aura applied") then print("Enraged by Aura applied") end
 		end	
 		
 	elseif(subEvent == "SPELL_AURA_REMOVED") then
@@ -590,6 +636,7 @@ end
 	--------------------------------------------------------------------------	
 
 local function TranqshotMana()
+
 	if Setting("Save Tranq Mana") 
 	and BossID == 14020	-- Chromagus,
 	or BossID == 11981	-- Flamegore,
@@ -601,53 +648,10 @@ local function TranqshotMana()
 	else 
 		TranqMana = 0
 	end
+
 end
  
 	--------------------------------------------------------------------------	
-
-local function EnragedBoss()
-	if Enemy41YC >=1 
-		then
-		for _, Unit in ipairs(Enemy41Y) do
-			if Unit:IsBoss()
-			and Unit:AuraByID(19451, true)	-- SpellIds from Enrage Magmadar,
-			or Unit:AuraByID(23128, true)	-- Chromagus,
-			or Unit:AuraByID(23342, true)	-- Flamegore,
-			or Unit:AuraByID(26051, true) 	-- Princess Huhuran
-			-- or Unit:AuraByID(???, true)	-- Gluth???
-				then						
-				BossEnraged = true
-				return true
-			end
-		end
-	end
-	BossEnraged = false
-	return false
-end
-
-	--------------------------------------------------------------------------	
-
-local function Tranqorder()
-	if Setting("Tranq Order") == 1
-	and EnrageNR == 1 or EnrageNR == 2 or EnrageNR == 3 or EnrageNR == 4 or EnrageNR == 5 or EnrageNR == 6 or EnrageNR == 7 or EnrageNR == 8 or EnrageNR == 9 or EnrageNR == 10 or EnrageNR == 11 or EnrageNR == 12 or EnrageNR == 13 or EnrageNR == 14 or EnrageNR == 15 or EnrageNR == 16 or EnrageNR == 17 or EnrageNR == 18 or EnrageNR == 19 or EnrageNR == 20
-		then
-		MyTranq = true
-		return true
-	elseif Setting("Tranq Order") == 2
-	and EnrageNR ==2 or EnrageNR == 4 or EnrageNR == 6 or EnrageNR == 8 or EnrageNR == 10 or EnrageNR == 12 or EnrageNR == 14 or EnrageNR == 16 or EnrageNR == 18 or EnrageNR == 20
-		then
-		MyTranq = true
-		return true
-	elseif Setting("Tranq Order") == 2
-	and EnrageNR == 3 or EnrageNR == 6 or EnrageNR == 9 or EnrageNR == 12 or EnrageNR == 15 or EnrageNR == 18 or EnrageNR == 21 or EnrageNR == 24 or EnrageNR == 27 or EnrageNR == 30
-		then
-		MyTranq = true
-		return true
-	end
-	MyTranq = false
-	return false
-end
-	--------------------------------------------------------------------------	 
 
 local function Auto()
  --Autoshot
@@ -732,7 +736,7 @@ local function FeignSwap()
 	if Setting("Auto Swap Trinkets")
 	and Player.IsFeign
 	and not Player.Combat
-	and Item.DevilsaurEye:CD() > 1.6 or Item.Earthstrike:CD() > 1.6 or Item.JomGabbar:CD() > 1.6 or Item.BadgeoftheSwarmguard:CD() > 1.6 
+	and (Item.DevilsaurEye:CD() > 1.6 or Item.Earthstrike:CD() > 1.6 or Item.JomGabbar:CD() > 1.6 or Item.BadgeoftheSwarmguard:CD() > 1.6) 
 		then
 		
 		-- GetFeignDeathIndex()
@@ -818,13 +822,13 @@ local function ReadyCooldown()
 			end
 			
 			if Spell.RapidFire:Known()
-			and Spell.RapidFire:CD() <= 1.6
+			and Spell.RapidFire:CD() == 0
 			then
 				ReadyCooldownCountValue = ReadyCooldownCountValue + 1
 			end
 			
 			if Spell.BerserkingTroll:Known()
-			and Spell.BerserkingTroll:CD() <= 1.6 
+			and Spell.BerserkingTroll:CD() == 0 
 			then
 				ReadyCooldownCountValue = ReadyCooldownCountValue + 1
 			end
@@ -865,45 +869,45 @@ end
 
 local function CoolDowns()
 
-	if Item.DevilsaurEye:Equipped() 
+		if Item.DevilsaurEye:Equipped() 
 		and Item.DevilsaurEye:CD() == 0
 		then 
 			if Item.DevilsaurEye:Use(Player) then return true end
 			
 		elseif Spell.RapidFire:Known()
-		and Player.PowerPct >= 5
-		and Spell.RapidFire:CD() == 0 
-		then
-			if Spell.RapidFire:Cast(Player) then return true end
+			and Player.PowerPct >= 5
+			and Spell.RapidFire:CD() == 0
+			then
+				if Spell.RapidFire:Cast(Player) then return true end
 			
 		elseif Item.Earthstrike:Equipped()
-			and Item.Earthstrike:CD() == 0
+			and Item.Earthstrike:CD() <= 1.6
 			then
-				if Item.Earthstrike:Use(Player) then end
+				if Item.Earthstrike:Use(Player) then return true end
 					
 		elseif Item.JomGabbar:Equipped() 
-			and Item.JomGabbar:CD() == 0
+			and Item.JomGabbar:CD() <= 1.6
 			then
-				if Item.JomGabbar:Use(Player) then end
+				if Item.JomGabbar:Use(Player) then return true end
 				
 		elseif Item.BadgeoftheSwarmguard:Equipped() 
-			and Item.BadgeoftheSwarmguard:CD() == 0
+			and Item.BadgeoftheSwarmguard:CD() <= 1.6
 			then
-				if Item.BadgeoftheSwarmguard:Use(Player) then end
+				if Item.BadgeoftheSwarmguard:Use(Player) then return true end
 				
 		elseif Spell.BloodFury:Known() 
-			and Spell.BloodFury:CD() == 0
+			and Spell.BloodFury:CD() <= 1.6
 			and Player.PowerPct >= 5
 			then
-				if Spell.BloodFury:Cast(Player) then end
+				if Spell.BloodFury:Cast(Player) then return true end
 			
 		elseif Spell.BerserkingTroll:Known()
-				and Player.PowerPct >= 5
-		and Spell.BerserkingTroll:CD() == 0 
-		then
-			if Spell.BerserkingTroll:Cast(Player) then return true end
-	else return false
-	end
+			and Player.PowerPct >= 5
+			and Spell.BerserkingTroll:CD() == 0 
+			then
+				if Spell.BerserkingTroll:Cast(Player) then return true end
+		else return true
+		end
 
 end
 
@@ -963,6 +967,7 @@ local function AimedMacro()
 				AimedMacroDone = true
 				return true
 		end
+
 end
  
  	--------------------------------------------------------------------------	
@@ -989,11 +994,11 @@ local function AutoTargetAndFacing()
 
 -- Auto Face the Target
     if Setting("AutoFace")
-		--and Player.Combat 
+		and Player.Combat 
 		and Target
 		and Target.ValidEnemy
 		and Target.Distance <= 41
-		and not UnitIsFacing("player", Target.Pointer,120) then
+		and not UnitIsFacing("player", Target.Pointer,180) then
             FaceDirection(Target.Pointer, true)
 			return true       
     end
@@ -1001,11 +1006,8 @@ local function AutoTargetAndFacing()
 -- Auto targets Enemy in Range
     if Setting("TargetMarkedMobs") 
 	and Player.Combat
-	and not Target 
-	or not Target.ValidEnemy 
-	or Target.Dead 
-	or not ObjectIsFacing("Player", Target.Pointer, 120) 
-	or IsSpellInRange("AutoShot", "target") == 0 
+	and (not Target or not Target.ValidEnemy or Target.Dead or not ObjectIsFacing("Player", Target.Pointer, 120) 
+	or IsSpellInRange("AutoShot", "target") == 0) 
 		then
 		for _, Unit in ipairs(Enemy41Y) do
 	--------------------------------------------------------------------------	ranged		
@@ -1154,7 +1156,8 @@ local function Utility()
 -- Sapper Charge
 	if Setting("Use Sapper Charge")
 	and Player.Combat
-	and Enemy10YC >= Setting("Enemys in 10Y")
+	and Enemy10YC ~= nil
+	and Enemy10YC >= Setting("Enemys 10Y")
 	and GetItemCount(Item.GoblinSapperCharge.ItemID) >= 1
 	and Item.GoblinSapperCharge:CD() == 0 
 		then 
@@ -1166,6 +1169,7 @@ local function Utility()
 	if Setting("Use Trowables") >= 1
 	and Target
 	and Player.Combat
+	and Target5YC ~= nil
 	and Target5YC >= Setting("Enemys 5Y around Target")
 	and Target.Facing
 	then
@@ -1260,6 +1264,19 @@ local function Utility()
 			end
 		end
 	end
+  
+--Use "Healthstone" 
+   if Setting("Healthstone") 
+    and HP < Setting("Use Healthstone at #% HP") 
+    and (Item.MajorHealthstone:Use(Player) 
+    or Item.GreaterHealthstone:Use(Player) 
+    or Item.Healthstone:Use(Player) 
+    or Item.LesserHealthstone:Use(Player) 
+    or Item.MinorHealthstone:Use(Player)) then
+        return true
+    end
+
+
 	
 -- Use Demonic or Dark Rune --
 	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 and not castingAShot then
@@ -1385,14 +1402,16 @@ local function Shots()
 		if Setting("Aimed Shot")
 		    and Setting("Clipped Rotation") 
 		    and Target.Facing 
+			and Target.HealthMax >= 5000
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 3
 			and Player.PowerPct > TranqMana			
-		    and Target.TTD > 5
+		    and Target.TTD > 4
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
+			and not Player.Casting
 			and not castingAShot
 			and not castingAimed
 			and reloadInMoment <= (reloadTime - 600) 
@@ -1418,14 +1437,16 @@ local function Shots()
 		if Setting("Aimed Shot") 
 			and not Setting("Clipped Rotation") 
 		    and Target.Facing 
+			and Target.HealthMax >= 5000
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
 		    and Player.PowerPct > 3
 			and Player.PowerPct > TranqMana			
-		    and Target.TTD > 5
+		    and Target.TTD > 4
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
+			and not Player.Casting
 			and not castingAShot
 			and not castingAimed
 			and reloadInMoment <= 200  
@@ -1518,35 +1539,56 @@ end
 
 function Hunter.Rotation()
 
-
+	
     Locals()
 	
+	if Setting("Print ISEnraged")
+	then
+		print("Boss enraged:",BossEnraged)
+	end
 	
+	if Setting("Print EnrageNR")
+	then
+		print("EnrageNR:",EnrageNR)
+	end	
+	
+	if Setting("MyTranq")
+	then
+		print("MyTranq",MyTranq)
+	end
+
+
+	
+		
 	if AutoTargetAndFacing()then return true
 	end
 
 -- Feign death function also for Trinket swapping
-	if FeignSwap() or Player.IsFeign 
+	if FeignSwap()
 		then return true
 	end
 	
 --Burst Opener
 		if Setting("Use Opener Rotation")
 			then
+			
 			if aimednumber >= 1
 				and Target
 				and Target.Facing 
 				and CDs
 				and ReadyCooldown()
-				and Spell.AimedShot:CD() <= 5
+				and Spell.AimedShot:CD() <= 4
 					then 
-						if CoolDowns() then return true end
+					if CoolDowns() 
+						then return true 
+					end
 						
 			elseif Setting("Use Opener Rotation")
 			and Setting("FD in Opener Roration")
 			and aimednumber >= 3
-			and	Item.DevilsaurEye:Equipped() or Item.Earthstrike:Equipped() or Item.JomGabbar:Equipped() or Item.BadgeoftheSwarmguard:Equipped()
-			and Item.DevilsaurEye:CD() > 1.6 or Item.Earthstrike:CD() > 1.6 or Item.JomGabbar:CD() > 1.6 or Item.BadgeoftheSwarmguard:CD() > 1.6			
+			and Spell.FeignDeath:CD() == 0
+			and	(Item.DevilsaurEye:Equipped() or Item.Earthstrike:Equipped() or Item.JomGabbar:Equipped() or Item.BadgeoftheSwarmguard:Equipped())
+			and (Item.DevilsaurEye:CD() > 1.6 or Item.Earthstrike:CD() > 1.6 or Item.JomGabbar:CD() > 1.6 or Item.BadgeoftheSwarmguard:CD() > 1.6) 
 			-- and not Buff.Earthstrike:Exist(Player)
 			-- and not Buff.JomGabbar:Exist(Player)
 			-- and not Buff.BadgeoftheSwarmguard:Exist(Player)
@@ -1562,7 +1604,7 @@ function Hunter.Rotation()
 					PetPassiveMode()
 					StopAttack() 
 					SpellStopCasting()
-					Spell.FeignDeath:Cast(Player)
+					C_Timer.After(0.5, function() Spell.FeignDeath:Cast(Player) end)
 					return true 
 					
 					
@@ -1571,10 +1613,10 @@ function Hunter.Rotation()
 
 		end
 
-	if AimedMacro()then return true
+	if AimedMacro() then return true 
 	end
 	
-	if TranqshotMana()then return true
+	if TranqshotMana() then return true 
 	end
 
 	if Utility() then return true 
@@ -1588,8 +1630,8 @@ function Hunter.Rotation()
 
 --Aspect of the Hawk
 		if Setting("Aspect of the Hawk")
-			and BossID == 15299 --viscidus
-			or BossID == 15509 --huhuran
+			and (BossID == 15299 --viscidus
+			or BossID == 15509) --huhuran
 			and not Player.Casting 
 			and not castingAShot 
 			and not Buff.AspectOfTheWild:Exist(Player) 
@@ -1599,8 +1641,8 @@ function Hunter.Rotation()
 					return true 
 
 		elseif Setting("Aspect of the Hawk") 
-			and not BossID == 15299 --viscidus
-			or not BossID == 15509 --huhuran
+			and (not BossID == 15299 --viscidus
+			or not BossID == 15509) --huhuran
 			and not Player.Casting 
 			and not castingAShot 
 			and Target.Distance > 8 
@@ -1648,7 +1690,11 @@ function Hunter.Rotation()
         and Target.Distance <= 48
 		and (Target.Health >= 20000 or Setting("Allways HuntersMark"))
         and (Target.TTD > 8 or Setting("Allways HuntersMark"))
-		and not Target.ObjectID == (15275 or 12100 or 12101 or 12076 or 12457) --Emperor Vek AQ;Lava Reaver;Lava Surger;Lava Elemental;Blackwing Spellbinder
+		and (not Target.ObjectID == 15275 --Emperor Vek AQ;Lava Reaver;Lava Surger;Lava Elemental;Blackwing Spellbinder
+		or not Target.ObjectID == 12100
+		or not Target.ObjectID == 12101 
+		or not Target.ObjectID == 12076
+		or not Target.ObjectID == 12457) 
 		and not Markisup
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
