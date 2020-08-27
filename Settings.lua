@@ -16,8 +16,6 @@ function Hunter.Settings()
     -- }
  --   UI.AddHeader("General")
  
- 
-
 	UI.HUD.Options = 
 	{
  
@@ -37,7 +35,8 @@ function Hunter.Settings()
 				
 			[3]= {
                FeignDeath = {
-                    [1] = {Text = "FeignDeath |cFF00FF00On", Tooltip = ""},
+                    [1] = {Text = "FeignDeath |cFF00FF00Aggro", Tooltip = ""},
+					--[2] = {Text = "FeignDeath |cFF00FF00%Setting", Tooltip = ""},
                     [2] = {Text = "FeignDeath |cffff0000Off", Tooltip = ""}
 						 }
 				},		
@@ -54,8 +53,22 @@ function Hunter.Settings()
 	
 --  UI.AddHeader("DPS")
 	--UI.AddTab("DPS") not needed cause General is OK
+	
+	UI.AddToggle("AutoFace", "Makes you Face the Target all the Time", false)
+	UI.AddToggle("TargetMarkedMobs", "Targets the next RaidTarget automaticly", false)
 	UI.AddHeader("Cliped or Full Rotation")
 	UI.AddToggle("Clipped Rotation", "Clipp Autoshots or not ", true)   
+	UI.AddToggle("Use Opener Rotation","Uses Opener Rotation with Cooldowns", true)
+	UI.AddToggle("FD in Opener Roration","Feigns in Opener Rotation for auto/manual/addon Trinket swapping", true)
+	UI.AddToggle("Auto Swap Trinkets","Swap trinkets according to settings", false)
+	UI.AddDropdown("Swap out Slot1", "Swap TrinketSlot 1 after use and FD to", {"None","DevilsaurEye","JomGabbar","Earthstrike","BadgeoftheSwarmguard"},1)
+  	UI.AddDropdown("Swap out Slot2", "Swap TrinketSlot 2 after use and FD to", {"None","DevilsaurEye","JomGabbar","Earthstrike","BadgeoftheSwarmguard"},1)
+	UI.AddDropdown("Swap TrinketSlot 1", "Swap TrinketSlot 1 after use and FD to", {"None","RoyalSeal","Blackhand's Breadth"},1)
+	UI.AddDropdown("Swap TrinketSlot 2", "Swap TrinketSlot 2 after use and FD to", {"None","RoyalSeal","Blackhand's Breadth"},1)
+	
+	UI.AddHeader("FeignDeath")
+	UI.AddRange("% to FeignDeath","at this % of Aggro FD will be cast", 80, 130, 1, 120)	
+	
 	UI.AddHeader("Shots")
 	UI.AddToggle("Aimed Shot", "Aimed Shot", true)
 	UI.AddToggle("Arcane if moving", "Casts Arcane when the player is moving instead of Aimed", true)
@@ -63,7 +76,13 @@ function Hunter.Settings()
 	UI.AddToggle("Arcane Shot", "Will use Arcanshot", true)
 	UI.AddToggle("Serpent Sting", "Will use Serpent Sting", true)
 	UI.AddToggle("Save Tranq Mana","Holds back 10% Mana for Tranqshot", true)
- 
+
+	UI.AddHeader("Melee")
+	UI.AddToggle("RaptorStrike", "uses RaptorStrike", true)
+	UI.AddToggle("MongooseBite", "uses MongooseBite", true)
+	UI.AddToggle("WingClip", "uses WingClip", false)
+	UI.AddToggle("WingClipRank1", "uses WingClipRank1", true)
+	
 	
 --  Defensive
 	UI.AddTab("Defensive")
@@ -101,9 +120,14 @@ function Hunter.Settings()
 	UI.AddHeader("Consumables")
 	UI.AddToggle("Use Best HP Potion", "Check back for Potions and use best available one")
 	UI.AddRange("Use Potion at #% HP", nil, 10, 100, 1, 50, true)
+	
+	UI.AddHeader("Engineering Stuff")
+	UI.AddToggle("Use Sapper Charge", "uses Sapper according to Setting", false)
+	UI.AddRange("Enemys 10Y", "Enemys in 10 Yards Sapper Range", 0, 15, 1, 35)
+	UI.AddDropdown("Use Trowables", "Select the item to use", {"None","All","DenseDynamite","EZThroDynamitII","ThoriumGrenade","IronGrenade"},1)
+	UI.AddRange("Enemys 5Y around Target", "Enemys in 5 around Target", 0, 15, 1, 8)
 
     --Consumables Mana
-	
 	UI.AddHeader("Mana Potions on Boss Targets")
 	UI.AddToggle("Use Best Mana Potion", "Check back for Potions and use best available one") 
 	UI.AddRange("Use Potion at #% Mana", nil, 10, 100, 1, 50, true)
@@ -111,10 +135,18 @@ function Hunter.Settings()
 	UI.AddRange("Use Rune at #% Mana", nil, 10, 100, 1, 50, true)
  
 
-	-- Not Working needs recode
+	-- Testing Status
 	UI.AddTab("Testing")
 	UI.AddHeader("Do not use this is not working")
 	UI.AddToggle("Tranq Shot","Uses Tranq Shot if Enraged", true)
 	UI.AddDropdown("Tranq Order", "Tranqshot every first,second or third frenzy", { 1, 2, 3}, 1)
+	
+	-- Buff Sniper
+	UI.AddTab("Buff Sniper")
+	UI.AddHeader("If World buff drops log off")
+	UI.AddHeader("Only select one")
+	UI.AddToggle("WCB", "If Warchiefsblessing is on you log off", false)
+	UI.AddToggle("Ony_Nef", "If Dragonslayer is on you log off", false)
+	UI.AddToggle("ZG", "If Spirit of Zandalar is on you log off", false)
 
 end
