@@ -2,7 +2,7 @@ local DMW = DMW
 local Hunter = DMW.Rotations.HUNTER
 local Rotation = DMW.Helpers.Rotation
 local Setting = DMW.Helpers.Rotation.Setting
-local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD, Health, CDs, HUD, Enemy10Y, Enemy10YC, Enemy20Y, Enemy20YC, Enemy30Y, Enemy30YC, Enemy41Y, Enemy41YC, CTime
+local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD, Health, CDs, HUD, Enemy10Y, Enemy10YC, Enemy20Y, Enemy20YC, Enemy30Y, Enemy30YC, Enemy41Y, Enemy41YC, Enemy50Y, Enemy50YC, CTime
 local ShotTime = GetTime()
 local FeignDeathIndex = 0
 local isFeign = false 
@@ -42,6 +42,7 @@ local ReadyCooldownCountValue = 0
 local bagSlots = {20, 21, 22, 23};
 local updateRequired = false;
 local FHowlPetButton = nil
+local ItemUsage = GetTime()
 
 	--------------------------------------------------------------------------	
 
@@ -57,7 +58,8 @@ end
 	--------------------------------------------------------------------------	
 
 local function EnragedBoss()
-	if Enemy41YC >=1 
+	if Enemy50YC ~= nil
+	and Enemy50YC >=1 
 		then
 		for _, Unit in ipairs(Enemy41Y) do
 			if Unit:IsBoss()
@@ -120,11 +122,8 @@ local function Locals()
 	GCD = Player:GCD()
 	Target5Y, Target5YC = EnemiesAroundTarget()
 	Enemy10Y, Enemy10YC = Player:GetEnemies(10)
-	Enemy20Y, Enemy20YC = Player:GetEnemies(20)
-    Enemy30Y, Enemy30YC = Player:GetEnemies(30)
-    Player40Y, Player40YC = Player:GetEnemies(40)
-	Enemy40Y, Enemy40YC = Player:GetEnemies(40)
 	Enemy41Y, Enemy41YC = Player:GetEnemies(41)
+	Enemy50Y, Enemy50YC = Player:GetEnemies(50)
 	BossEnraged = EnragedBoss()
 	MyTranq = Tranqorder()
 
@@ -1159,6 +1158,7 @@ local function Utility()
 -- Sapper Charge
 	if Setting("Use Sapper Charge")
 	and Player.Combat
+	and (DMW.Time - ItemUsage) > 1.5 
 	and not Player.Casting
     and not castingAShot
 	and Enemy10YC ~= nil
@@ -1167,6 +1167,7 @@ local function Utility()
 	and Item.GoblinSapperCharge:CD() == 0 
 		then 
 		Item.GoblinSapperCharge:Use(Player)
+		ItemUsage = DMW.Time
 		return true
 	end
 
@@ -1174,6 +1175,7 @@ local function Utility()
 	if Setting("Use Trowables") >= 1
 	and Target
 	and Player.Combat
+	and (DMW.Time - ItemUsage) > 1.5 
 	and not Player.Casting
     and not castingAShot
 	and Target5YC ~= nil
@@ -1187,24 +1189,28 @@ local function Utility()
 			and Item.DenseDynamite:CD() == 0 
 			then 
 				Item.DenseDynamite:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(Item.ThoriumGrenade.ItemID) >= 1
 			and Target.Distance <= 45
 			and Item.ThoriumGrenade:CD() == 0 
 			then 
 				Item.ThoriumGrenade:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(Item.EZThroDynamitII.ItemID) >= 1
 			and Target.Distance <= 30
 			and Item.EZThroDynamitII:CD() == 0 
 			then 
 				Item.EZThroDynamitII:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true				
 			elseif GetItemCount(Item.IronGrenade.ItemID) >= 1
 			and Target.Distance <= 45
 			and Item.IronGrenade:CD() == 0 
 			then 
 				Item.IronGrenade:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true	
 			end
 			
@@ -1214,6 +1220,7 @@ local function Utility()
 			and Item.DenseDynamite:CD() == 0 
 			then 
 				Item.DenseDynamite:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true
 		elseif Setting("Use Trowables") == 4
 			and GetItemCount(Item.EZThroDynamitII.ItemID) >= 1
@@ -1221,6 +1228,7 @@ local function Utility()
 			and Item.EZThroDynamitII:CD() == 0 
 			then 
 				Item.EZThroDynamitII:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true		
 		elseif Setting("Use Trowables") == 5
 			and GetItemCount(Item.ThoriumGrenade.ItemID) >= 1
@@ -1228,6 +1236,7 @@ local function Utility()
 			and Item.ThoriumGrenade:CD() == 0 
 			then 
 				Item.ThoriumGrenade:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true		
 		elseif Setting("Use Trowables") == 6
 			and GetItemCount(Item.IronGrenade.ItemID) >= 1
@@ -1235,6 +1244,7 @@ local function Utility()
 			and Item.IronGrenade:CD() == 0 
 			then 
 				Item.IronGrenade:UseGround(Target)
+				ItemUsage = DMW.Time
 				return true			
 		
 		end
@@ -1243,30 +1253,36 @@ local function Utility()
 
 -- Use best available Healf potion --
 	if Setting("Use Best HP Potion") then
-		if HP <= Setting("Use Potion at #% HP") and Player.Combat and not Player.Casting and not castingAShot then
+		if HP <= Setting("Use Potion at #% HP") and Player.Combat and not Player.Casting and not castingAShot and (DMW.Time - ItemUsage) > 1.5 then
 			if GetItemCount(13446) >= 1 and GetItemCooldown(13446) == 0 then
 				name = GetItemInfo(13446)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true 
 			elseif GetItemCount(3928) >= 1 and GetItemCooldown(3928) == 0 then
 				name = GetItemInfo(3928)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(1710) >= 1 and GetItemCooldown(1710) == 0 then
 				name = GetItemInfo(1710)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(929) >= 1 and GetItemCooldown(929) == 0 then
 				name = GetItemInfo(929)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(858) >= 1 and GetItemCooldown(858) == 0 then
 				name = GetItemInfo(858)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(118) >= 1 and GetItemCooldown(118) == 0 then
 				name = GetItemInfo(118)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			end
 		end
@@ -1274,6 +1290,7 @@ local function Utility()
   
 --Use "Healthstone" 
 	if Setting("Healthstone")
+	and (DMW.Time - ItemUsage) > 1.5 
 	and not Player.Casting
     and not castingAShot
     and HP < Setting("Use Healthstone at #% HP") 
@@ -1281,53 +1298,62 @@ local function Utility()
     or Item.GreaterHealthstone:Use(Player) 
     or Item.Healthstone:Use(Player) 
     or Item.LesserHealthstone:Use(Player) 
-    or Item.MinorHealthstone:Use(Player)) then
-        return true
+    or Item.MinorHealthstone:Use(Player)) 
+	then
+        ItemUsage = DMW.Time return true
     end
 
 
 	
 -- Use Demonic or Dark Rune --
-	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 	and not Player.Casting and not castingAShot then
+	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 	and not Player.Casting and not castingAShot and (DMW.Time - ItemUsage) > 1.5 then
 		if Power <= Setting("Use Rune at #% Mana") and Player.Combat then
 			if GetItemCount(12662) >= 1 and GetItemCooldown(12662) == 0 then
 				name = GetItemInfo(12662)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true 
 			elseif GetItemCount(20520) >= 1 and GetItemCooldown(20520) == 0 then
 				name = GetItemInfo(20520)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true	
 			end
 		end
 	end	
 
 -- Use best available Mana potion --
-	if Setting("Use Best Mana Potion") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() 	and not Player.Casting and not castingAShot then
+	if Setting("Use Best Mana Potion") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() 	and not Player.Casting and not castingAShot and (DMW.Time - ItemUsage) > 1.5 then
 		if Power <= Setting("Use Potion at #% Mana") and Player.Combat then
 			if GetItemCount(13444) >= 1 and GetItemCooldown(13444) == 0 then
 				name = GetItemInfo(13444)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true 
 			elseif GetItemCount(13443) >= 1 and GetItemCooldown(13443) == 0 then
 				name = GetItemInfo(13443)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(6149) >= 1 and GetItemCooldown(6149) == 0 then
 				name = GetItemInfo(6149)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(3827) >= 1 and GetItemCooldown(3827) == 0 then
 				name = GetItemInfo(3827)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(3385) >= 1 and GetItemCooldown(3385) == 0 then
 				name = GetItemInfo(3385)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(2455) >= 1 and GetItemCooldown(2455) == 0 then
 				name = GetItemInfo(2455)
 				RunMacroText("/use " .. name)
+				ItemUsage = DMW.Time
 				return true
 			end
 		end
