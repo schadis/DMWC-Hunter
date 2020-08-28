@@ -1290,6 +1290,7 @@ local function Utility()
   
 --Use "Healthstone" 
 	if Setting("Healthstone")
+	and Player.Combat
 	and (DMW.Time - ItemUsage) > 1.5 
 	and not Player.Casting
     and not castingAShot
@@ -1300,7 +1301,8 @@ local function Utility()
     or Item.LesserHealthstone:Use(Player) 
     or Item.MinorHealthstone:Use(Player)) 
 	then
-        ItemUsage = DMW.Time return true
+        ItemUsage = DMW.Time 
+		return true
     end
 
 
