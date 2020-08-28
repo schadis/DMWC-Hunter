@@ -1,5 +1,5 @@
 ## Interface: 11320
-## Title: DoMeWhen Classic - HunterMod
+## Title: DoMeWhen Classic - Hunter
 ## Author: schadis
 ## Notes: Hunter Rotation for DoMeWhen Classic
 ## DefaultState: Disabled
