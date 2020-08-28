@@ -11,6 +11,7 @@
 
 * alot of small code changes (noticed while raiding)
 * fixes for item usage
+* added healthstone usage with settings
 
 ## 27.08.2020
 
