@@ -10,7 +10,7 @@
 ## 28.08.2020
 
 * alot of small code changes (noticed while raiding)
-* fixed to item usage
+* fixes for item usage
 
 ## 27.08.2020
 
