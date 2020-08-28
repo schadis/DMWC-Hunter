@@ -7,6 +7,11 @@
 
 ## Changelog
 
+## 28.08.2020
+
+* alot of small code changes (noticed while raiding)
+* fixed to item usage
+
 ## 27.08.2020
 
 * added engineering items (sapper charge, nades, dynamite) !!! will work with my DMWC fork or after merge!!!
