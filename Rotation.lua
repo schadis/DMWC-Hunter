@@ -266,7 +266,6 @@ end
 local function CombatLogEvent(...)
 	local timeStamp, subEvent, _, sourceID, sourceName, _, _, targetID = ...;
 	
-
 	if(subEvent == "SPELL_CAST_START") then
 	
 		if(sourceID ~= UnitGUID("player")) then return end
@@ -1572,28 +1571,32 @@ function Hunter.Rotation()
 	
     Locals()
 	
-	if Setting("Print ISEnraged")
-	then
-		print("Boss enraged:",BossEnraged)
+--Debug and Log Info	
+	if Setting("Debug")
+	and not DMW.UI.Debug.Frame:IsShown() 
+		then
+        DMW.UI.Debug.Frame:Show()
+    elseif not Setting("Debug")
+	and DMW.UI.Debug.Frame:IsShown()
+		then
+		DMW.UI.Debug.Frame:Hide()	            
 	end
 	
-	if Setting("Print EnrageNR")
-	then
-		print("EnrageNR:",EnrageNR)
+	if Setting("Log")
+	and not DMW.UI.Log.Frame:IsShown() 
+		then
+        DMW.UI.Log.Frame:Show()
+    elseif not Setting("Log")
+	and DMW.UI.Log.Frame:IsShown()
+		then
+		DMW.UI.Log.Frame:Hide()	            
 	end	
 	
-	if Setting("MyTranq")
-	then
-		print("MyTranq",MyTranq)
-	end
-
-
-	
-		
+--Autotarget with Raidmarks
 	if AutoTargetAndFacing()then return true
 	end
 
--- Feign death function also for Trinket swapping
+--Feign death function also for Trinket swapping
 	if FeignAndSwap()
 		then return true
 	end

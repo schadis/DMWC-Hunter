@@ -153,8 +153,11 @@ function Hunter.Settings()
 	UI.AddToggle("Ony_Nef", "If Dragonslayer is on you log off", false)
 	UI.AddToggle("ZG", "If Spirit of Zandalar is on you log off", false)
 	
-	--Debug Print
-	-- UI.AddTab("Print")
+	--Debug/Print
+	UI.AddTab("Debug/Print")
+	UI.AddToggle("Debug","enables Debug", false)
+	UI.AddToggle("Log","enables Log", false)
+	
 	-- UI.AddToggle("Print ISEnraged", nil, true)
 	-- UI.AddToggle("Print EnrageNR", nil, true)
 	-- UI.AddToggle("MyTranq", nil, true)
