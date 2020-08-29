@@ -144,6 +144,7 @@ function Hunter.Settings()
 	UI.AddHeader("Do not use this is not working")
 	UI.AddToggle("Tranq Shot","Uses Tranq Shot if Enraged", true)
 	UI.AddDropdown("Tranq Order", "Tranqshot every first,second or third frenzy", { 1, 2, 3}, 1)
+	UI.AddDropdown("Hunters that Tranq", "How many hunter Tranq the boss", { 1, 2, 3}, 1)
 	
 	-- Buff Sniper
 	UI.AddTab("Buff Sniper")

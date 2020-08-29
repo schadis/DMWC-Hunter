@@ -82,21 +82,36 @@ end
 	--------------------------------------------------------------------------	
 
 local function Tranqorder()
-	if Setting("Tranq Order") == 1
+	if Setting("Tranq Order") == 1 and Setting("Hunters that Tranq") = 1
 	and (EnrageNR == 1 or EnrageNR == 2 or EnrageNR == 3 or EnrageNR == 4 or EnrageNR == 5 or EnrageNR == 6 or EnrageNR == 7 or EnrageNR == 8 or EnrageNR == 9 or EnrageNR == 10 or EnrageNR == 11 or EnrageNR == 12 or EnrageNR == 13 or EnrageNR == 14 or EnrageNR == 15 or EnrageNR == 16 or EnrageNR == 17 or EnrageNR == 18 or EnrageNR == 19 or EnrageNR == 20)
 		then
 		MyTranq = true
 		return true
-	elseif Setting("Tranq Order") == 2
+	elseif Setting("Tranq Order") == 1 and Setting("Hunters that Tranq") = 2
+	and (EnrageNR ==1 or EnrageNR == 3 or EnrageNR == 5 or EnrageNR == 7 or EnrageNR == 9 or EnrageNR == 11 or EnrageNR == 13 or EnrageNR == 15 or EnrageNR == 17 or EnrageNR == 19)
+		then
+		MyTranq = true
+		return true
+	elseif Setting("Tranq Order") == 2 and Setting("Hunters that Tranq") = 2
 	and (EnrageNR ==2 or EnrageNR == 4 or EnrageNR == 6 or EnrageNR == 8 or EnrageNR == 10 or EnrageNR == 12 or EnrageNR == 14 or EnrageNR == 16 or EnrageNR == 18 or EnrageNR == 20)
 		then
 		MyTranq = true
-		return true
-	elseif Setting("Tranq Order") == 2
-	and (EnrageNR == 3 or EnrageNR == 6 or EnrageNR == 9 or EnrageNR == 12 or EnrageNR == 15 or EnrageNR == 18 or EnrageNR == 21 or EnrageNR == 24 or EnrageNR == 27 or EnrageNR == 30)
+		return true	
+	elseif Setting("Tranq Order") == 1 and Setting("Hunters that Tranq") = 3
+	and (EnrageNR == 1 or EnrageNR == 4 or EnrageNR == 7 or EnrageNR == 10 or EnrageNR == 13 or EnrageNR == 16 or EnrageNR == 19 or EnrageNR == 22 or EnrageNR == 25 or EnrageNR == 28)
 		then
 		MyTranq = true
 		return true
+	elseif Setting("Tranq Order") == 2 and Setting("Hunters that Tranq") = 3
+	and (EnrageNR == 2 or EnrageNR == 5 or EnrageNR == 8 or EnrageNR == 11 or EnrageNR == 14 or EnrageNR == 15 or EnrageNR == 20 or EnrageNR == 23 or EnrageNR == 26 or EnrageNR == 29)
+		then
+		MyTranq = true
+		return true		
+	elseif Setting("Tranq Order") == 3 and Setting("Hunters that Tranq") = 3
+	and (EnrageNR == 3 or EnrageNR == 6 or EnrageNR == 9 or EnrageNR == 12 or EnrageNR == 15 or EnrageNR == 18 or EnrageNR == 21 or EnrageNR == 24 or EnrageNR == 27 or EnrageNR == 30)
+		then
+		MyTranq = true
+		return true	
 	end
 	MyTranq = false
 	return false
