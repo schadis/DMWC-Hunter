@@ -16,7 +16,7 @@
 * added FD on aggro checkbox
 * removed FD from HUD settings
 * added toggle for LOG and Debug window
-* added Number of hunter in Tranqrota
+* added Number of hunters in Tranqrota
 * fixed the tranqorder... dont know what i was thinking
 
 ## 28.08.2020
