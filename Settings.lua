@@ -155,8 +155,8 @@ function Hunter.Settings()
 	
 	--Debug/Print
 	UI.AddTab("Debug/Print")
-	UI.AddToggle("Debug","enables Debug", false)
-	UI.AddToggle("Log","enables Log", false)
+	UI.AddToggle("Debug","enables Debug, pls activate rotation once", false)
+	UI.AddToggle("Log","enables Log, pls activate rotation once", false)
 	
 	-- UI.AddToggle("Print ISEnraged", nil, true)
 	-- UI.AddToggle("Print EnrageNR", nil, true)

@@ -15,6 +15,7 @@
 * fixed that trinket swap function gets triggerd on manual FD
 * added FD on aggro checkbox
 * removed FD from HUD settings
+* added toggle for LOG and Debug window
 
 ## 28.08.2020
 
