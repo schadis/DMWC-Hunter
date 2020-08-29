@@ -541,13 +541,13 @@ end
 
 local function trinkettoswap1()
 	
-	if Setting("Swap TrinketSlot 1") == 2	
+	if Setting("Swap to Trinket Slot1") == 2	
 		then
 		return Item.RoyalSeal.ItemID  
-	elseif Setting("Swap TrinketSlot 1") == 3	
+	elseif Setting("Swap to Trinket Slot1") == 3	
 		then
 		return Item.BlackhandsB.ItemID 
-	elseif Setting("Swap TrinketSlot 1") == 1	
+	elseif Setting("Swap to Trinket Slot1") == 1	
 		then
 		return nil
 		end
@@ -555,13 +555,13 @@ end
 
 local function trinkettoswap2()
 	
-	if Setting("Swap TrinketSlot 2") == 2	
+	if Setting("Swap to Trinket Slot2") == 2	
 		then
 		return Item.RoyalSeal.ItemID  
-	elseif Setting("Swap TrinketSlot 2") == 3	
+	elseif Setting("Swap to Trinket Slot2") == 3	
 		then
 		return Item.BlackhandsB.ItemID 
-	elseif Setting("Swap TrinketSlot 2") == 1	
+	elseif Setting("Swap to Trinket Slot2") == 1	
 		then
 		return nil	
 	end
@@ -687,29 +687,29 @@ end
 
 	--------------------------------------------------------------------------	
 
-local function FeignSwap()
+local function FeignAndSwap()
 		
-	-- if HUD.FeignDeath == 1 or HUD.FeignDeath == 2
-	-- and Target 
-	-- and Target.ValidEnemy
-	-- and Player.Combat then
-		-- threatPercent = select(3, Target:UnitDetailedThreatSituation())
-		-- if threatPercent == nil then
-			-- threatPercent = 0
-		-- end
-	-- end
+	if (Setting("Use FeignDeath on Aggro") or Setting("Use FeignDeath on % Aggro"))
+	and Target 
+	and Target.ValidEnemy
+	and Player.Combat then
+		threatPercent = select(3, Target:UnitDetailedThreatSituation())
+		if threatPercent == nil then
+			threatPercent = 0
+		end
+	end
 	
-	-- if HUD.FeignDeath == 1 
-		 -- and Target 
-		 -- and Target.ValidEnemy
-		 -- and Player.Combat
-		 -- and Player.IsTanking() --or threatPercent >= 115)
-		 -- and Spell.FeignDeath:CD() == 0 
-			-- then
-				-- StopAttack() 
-				-- SpellStopCasting()
-				-- Spell.FeignDeath:Cast(Player)
-				-- return true
+	if Setting("Use FeignDeath on Aggro")
+		and Target 
+		and Target.ValidEnemy
+		and Player.Combat
+		and Player.IsTanking()
+		and Spell.FeignDeath:CD() == 0 
+			then
+				StopAttack() 
+				SpellStopCasting()
+				C_Timer.After(0.2, function() Spell.FeignDeath:Cast(Player) end)
+				return true
 	-- elseif HUD.FeignDeath == 2 
 		 -- and Target 
 		 -- and Target.ValidEnemy
@@ -722,20 +722,15 @@ local function FeignSwap()
 				-- Spell.FeignDeath:Cast(Player)
 				-- return true
 	-- end
-			
-			-- then
-			-- StopAttack() 
-			-- SpellStopCasting()
-			-- PetPassiveMode()
-			-- C_Timer.After(0.2, function() Spell.FeignDeath:Cast(Player) end )
-			-- return true 
-	-- end
+	end
 	
 	--Trinket Swap or Manual Cast Feign Death
 	if Setting("Auto Swap Trinkets")
 	and Player.IsFeign
+	and not Player.IsTanking()
 	and not Player.Combat
-	and (Item.DevilsaurEye:CD() > 1.6 or Item.Earthstrike:CD() > 1.6 or Item.JomGabbar:CD() > 1.6 or Item.BadgeoftheSwarmguard:CD() > 1.6) 
+	and (IsEquippedItem(trinkettoswapout1()) or IsEquippedItem(trinkettoswapout2()))
+	and (Item.DevilsaurEye:CD() >= 30 or Item.Earthstrike:CD() >= 30 or Item.JomGabbar:CD() >= 30 or Item.BadgeoftheSwarmguard:CD() >= 30) 
 		then
 		
 		-- GetFeignDeathIndex()
@@ -747,25 +742,25 @@ local function FeignSwap()
 		
 			
 			--if item equiped swap is finisched
-			if Setting("Swap TrinketSlot 1") ~= 1
+			if Setting("Swap to Trinket Slot1") ~= 1
 			and GetInventoryItemID("player", slotId1) == trinkettoswap1()
 				then 
 				swapfinishedslot1 = true
 				
 			--if setting is none swap is finisched	
-			elseif Setting("Swap TrinketSlot 1") == 1
+			elseif Setting("Swap to Trinket Slot1") == 1
 				then 
 				swapfinishedslot1 = true
 			end
 	--------------------------------------------------------------------------			
 			--if item equiped swap is finisched
-			if Setting("Swap TrinketSlot 2") ~= 1
+			if Setting("Swap to Trinket Slot2") ~= 1
 			and GetInventoryItemID("player", slotId2) == trinkettoswap2()
 				then 
 				swapfinishedslot2 = true
 				
 			--if setting is none swap is finisched	
-			elseif Setting("Swap TrinketSlot 2") == 1
+			elseif Setting("Swap to Trinket Slot2") == 1
 				then 
 				swapfinishedslot2 = true
 			end
@@ -781,11 +776,10 @@ local function FeignSwap()
 			
 	----------------------------------------------------------------------------
 			
-			if Setting("Swap TrinketSlot 1") ~= 1
+			if Setting("Swap to Trinket Slot1") ~= 1
 				and not swapfinishedslot1
 				and GetInventoryItemID("player", slotId1) ==  trinkettoswapout1()
-				and (Item.DevilsaurEye:Equipped() or Item.JomGabbar:Equipped() or Item.Earthstrike:Equipped() or Item.BadgeoftheSwarmguard:Equipped())
-				and not ReadyCooldown()
+				and IsEquippedItem(trinkettoswapout1())
 				then 
 					EquipItemByName(trinkettoswap1(), slotId1)
 					return true
@@ -793,14 +787,13 @@ local function FeignSwap()
 			
 	----------------------------------------------------------------------------
 			
-			if Setting("Swap TrinketSlot 2") ~= 1
+			if Setting("Swap to Trinket Slot2") ~= 1
 				and not swapfinishedslot2
 				and GetInventoryItemID("player", slotId2) ==  trinkettoswapout2() 
-				and (Item.DevilsaurEye:Equipped() or Item.JomGabbar:Equipped() or Item.Earthstrike:Equipped() or Item.BadgeoftheSwarmguard:Equipped())
-				and not ReadyCooldown()
-					then 
-						EquipItemByName(trinkettoswap2(), slotId2)
-						return true
+				and IsEquippedItem(trinkettoswapout2())
+				then 
+					EquipItemByName(trinkettoswap2(), slotId2)
+					return true
 			end
 	
 	
@@ -839,19 +832,19 @@ local function ReadyCooldown()
 			end
 
 			if Item.Earthstrike:Equipped()
-			and Item.Earthstrike:CD() <= 1.6	
+			and Item.Earthstrike:CD() == 0 	
 			then
 				ReadyCooldownCountValue = ReadyCooldownCountValue + 1 
 			end	
 			
 			if Item.JomGabbar:Equipped() 
-			and Item.JomGabbar:CD() <= 1.6	
+			and Item.JomGabbar:CD() == 0 	
 			then
 				ReadyCooldownCountValue = ReadyCooldownCountValue + 1
 			end
 			
 			if Item.BadgeoftheSwarmguard:Equipped() 
-			and Item.BadgeoftheSwarmguard:CD() <= 1.6	
+			and Item.BadgeoftheSwarmguard:CD() == 0 	
 			then
 				ReadyCooldownCountValue = ReadyCooldownCountValue + 1
 			end
@@ -1601,65 +1594,78 @@ function Hunter.Rotation()
 	end
 
 -- Feign death function also for Trinket swapping
-	if FeignSwap()
+	if FeignAndSwap()
 		then return true
 	end
 	
 --Burst Opener
-		if Setting("Use Opener Rotation")
-			then
-			
-			if aimednumber >= 1
-				and Target
-				and Target.Facing 
-				and CDs
-				and ReadyCooldown()
-				and Spell.AimedShot:CD() <= 4
-					then 
-					if CoolDowns() 
-						then return true 
-					end
-						
-			elseif Setting("Use Opener Rotation")
-			and Setting("FD in Opener Roration")
-			and aimednumber >= 3
-			and Spell.FeignDeath:CD() == 0
-			and	(Item.DevilsaurEye:Equipped() or Item.Earthstrike:Equipped() or Item.JomGabbar:Equipped() or Item.BadgeoftheSwarmguard:Equipped())
-			and (Item.DevilsaurEye:CD() > 1.6 or Item.Earthstrike:CD() > 1.6 or Item.JomGabbar:CD() > 1.6 or Item.BadgeoftheSwarmguard:CD() > 1.6) 
-			-- and not Buff.Earthstrike:Exist(Player)
-			-- and not Buff.JomGabbar:Exist(Player)
-			-- and not Buff.BadgeoftheSwarmguard:Exist(Player)
-			and not Buff.DevilsaurFury:Exist(Player)
-			and not Buff.RapidFire:Exist(Player)
-			and not Buff.BloodFury:Exist(Player)
-			and not Buff.BerserkingTroll:Exist(Player)
-			and not Player.Casting
-			and not castingAShot
-			and Player.Combat
-			and not ReadyCooldown()
-				then 
-					PetPassiveMode()
-					StopAttack() 
-					SpellStopCasting()
-					C_Timer.After(0.5, function() Spell.FeignDeath:Cast(Player) end)
-					return true 
-					
-					
+	if Setting("Use Opener Rotation")
+		and aimednumber >= 1
+		and Target
+		and Target.Facing 
+		and CDs
+		and ReadyCooldown()
+		and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
+		and Spell.AimedShot:CD() <= 4
+			then 
+			if CoolDowns() 
+				then return true 
 			end
-
-
+	end
+			
+	if Setting("Use Opener Rotation")
+	and Setting("FD in Opener Roration")
+	and ((Setting("Swap out Slot1") >= 2) or (Setting("Swap out Slot2") >= 2))
+	and aimednumber >= 3
+	and Spell.FeignDeath:CD() == 0
+	and	(IsEquippedItem(trinkettoswapout1()) or IsEquippedItem(trinkettoswapout2()))
+	and (Item.DevilsaurEye:CD() >= 30 or Item.Earthstrike:CD() >= 30 or Item.JomGabbar:CD() >= 30 or Item.BadgeoftheSwarmguard:CD() >= 30) 
+	and not Buff.Earthstrike:Exist(Player)
+	and not Buff.JomGabbar:Exist(Player)
+	and not Buff.InsightoftheQiraji:Exist(Player)
+	and not Buff.DevilsaurFury:Exist(Player)
+	and not Buff.RapidFire:Exist(Player)
+	and not Buff.BloodFury:Exist(Player)
+	and not Buff.BerserkingTroll:Exist(Player)
+	and not Player.Casting
+	and not castingAShot
+	and Player.Combat
+	and not ReadyCooldown()
+		then 
+			PetPassiveMode()
+			StopAttack() 
+			SpellStopCasting()
+			C_Timer.After(0.5, function() Spell.FeignDeath:Cast(Player) end)
+			return true 
+	end
+	
+--Cooldowns with Quickshots
+	if Setting("Use CD when QuickShots is up")
+	and Target
+	and Target.Facing 
+	and CDs
+	and ReadyCooldown()
+	and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
+	and Buff.QuickShots:Exist(Player)
+		then 
+		if CoolDowns() 
+			then return true 
 		end
+	end
 
+--AimedMacro clear Target and target last target
 	if AimedMacro() then return true 
 	end
 	
+--Tetermin if this is a tranqshot fight	
 	if TranqshotMana() then return true 
 	end
-
+	
+--Utility
 	if Utility() then return true 
 	end
 
--- and Target.ValidEnemy
+--and Target.ValidEnemy
 	if Target and Target.ValidEnemy and Target.Distance < 41 then
 		if Defensive() then
 			return true

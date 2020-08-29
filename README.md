@@ -7,6 +7,15 @@
 
 ## Changelog
 
+## 29.08.2020
+
+* reorder settings of the rotation
+* added min ready cooldown count to use cds
+* added CDs on quickshots proc toggle
+* fixed that trinket swap function gets triggerd on manual FD
+* added FD on aggro checkbox
+* removed FD from HUD settings
+
 ## 28.08.2020
 
 * alot of small code changes (noticed while raiding)

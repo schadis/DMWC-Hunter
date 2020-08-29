@@ -32,16 +32,8 @@ function Hunter.Settings()
                     [2] = {Text = "Multi |cffff0000Off", Tooltip = ""}
 						 }
 				},
-				
-			[3]= {
-               FeignDeath = {
-                    [1] = {Text = "FeignDeath |cFF00FF00Aggro", Tooltip = ""},
-					--[2] = {Text = "FeignDeath |cFF00FF00%Setting", Tooltip = ""},
-                    [2] = {Text = "FeignDeath |cffff0000Off", Tooltip = ""}
-						 }
-				},		
 					
-			[4]= {
+			[3]= {
                PetAttack = {
                     [1] = {Text = "PetAttack |cFF00FF00On", Tooltip = ""},
                     [2] = {Text = "PetAttack |cffff0000Off", Tooltip = ""}
@@ -58,17 +50,7 @@ function Hunter.Settings()
 	UI.AddToggle("TargetMarkedMobs", "Targets the next RaidTarget automaticly", false)
 	UI.AddHeader("Cliped or Full Rotation")
 	UI.AddToggle("Clipped Rotation", "Clipp Autoshots or not ", true)   
-	UI.AddToggle("Use Opener Rotation","Uses Opener Rotation with Cooldowns", true)
-	UI.AddToggle("FD in Opener Roration","Feigns in Opener Rotation for auto/manual/addon Trinket swapping", true)
-	UI.AddToggle("Auto Swap Trinkets","Swap trinkets according to settings", false)
-	UI.AddDropdown("Swap out Slot1", "Swap TrinketSlot 1 after use and FD to", {"None","DevilsaurEye","JomGabbar","Earthstrike","BadgeoftheSwarmguard"},1)
-  	UI.AddDropdown("Swap out Slot2", "Swap TrinketSlot 2 after use and FD to", {"None","DevilsaurEye","JomGabbar","Earthstrike","BadgeoftheSwarmguard"},1)
-	UI.AddDropdown("Swap TrinketSlot 1", "Swap TrinketSlot 1 after use and FD to", {"None","RoyalSeal","Blackhand's Breadth"},1)
-	UI.AddDropdown("Swap TrinketSlot 2", "Swap TrinketSlot 2 after use and FD to", {"None","RoyalSeal","Blackhand's Breadth"},1)
-	
-	UI.AddHeader("FeignDeath")
-	UI.AddRange("% to FeignDeath","at this % of Aggro FD will be cast", 80, 130, 1, 120)	
-	
+	UI.AddBlank()
 	UI.AddHeader("Shots")
 	UI.AddToggle("Aimed Shot", "Aimed Shot", true)
 	UI.AddToggle("Arcane if moving", "Casts Arcane when the player is moving instead of Aimed", true)
@@ -82,7 +64,27 @@ function Hunter.Settings()
 	UI.AddToggle("MongooseBite", "uses MongooseBite", true)
 	UI.AddToggle("WingClip", "uses WingClip", false)
 	UI.AddToggle("WingClipRank1", "uses WingClipRank1", true)
+
+--  Cooldowns
+	UI.AddTab("CDs and Aggro")	
+	UI.AddHeader("Opener/Burst Rota")
+	UI.AddToggle("Use Opener Rotation","Uses Opener Rotation with Cooldowns", true)
+	UI.AddToggle("FD in Opener Roration","Feigns in Opener Rotation for auto/manual/addon Trinket swapping", true)
+	UI.AddHeader("Cooldowns")
+	UI.AddToggle("Use CD when QuickShots is up","Use CD when QuickShots Buff is on you", false)
+	UI.AddRange("Min. Ready Cooldowns","Min. Ready Cooldowns to fire them", 1, 5, 1, 2)
+	UI.AddHeader("Trinket Swaping")
+	UI.AddToggle("Auto Swap Trinkets","Swap trinkets according to settings", false)
+	UI.AddBlank()
+	UI.AddDropdown("Swap out Slot1", "Swap TrinketSlot 1 after use and FD to", {"None","DevilsaurEye","JomGabbar","Earthstrike","BadgeoftheSwarmguard"},1)
+  	UI.AddDropdown("Swap out Slot2", "Swap TrinketSlot 2 after use and FD to", {"None","DevilsaurEye","JomGabbar","Earthstrike","BadgeoftheSwarmguard"},1)
+	UI.AddDropdown("Swap to Trinket Slot1", "Swap to Trinket Slot 1 after use and FD to", {"None","RoyalSeal","Blackhand's Breadth"},1)
+	UI.AddDropdown("Swap to Trinket Slot2", "Swap to Trinket Slot 2 after use and FD to", {"None","RoyalSeal","Blackhand's Breadth"},1)
 	
+	UI.AddHeader("FeignDeath")
+	UI.AddToggle("Use FD on Aggro","When you pulls aggro FD will be cast", true)
+	--UI.AddToggle("Use FD on % Aggro","FD will be cast on set % Aggro", false)
+	--UI.AddRange("% to FeignDeath","at this % of Aggro FD will be cast", 80, 130, 1, 120)	
 	
 --  Defensive
 	UI.AddTab("Defensive")
@@ -152,12 +154,12 @@ function Hunter.Settings()
 	UI.AddToggle("ZG", "If Spirit of Zandalar is on you log off", false)
 	
 	--Debug Print
-	UI.AddTab("Print")
-	UI.AddToggle("Print ISEnraged", nil, true)
-	UI.AddToggle("Print EnrageNR", nil, true)
-	UI.AddToggle("MyTranq", nil, true)
-	UI.AddToggle("Enraged by Aura applied", nil, true)
-	UI.AddToggle("Enraged by Unit:Aura", nil, true)
+	-- UI.AddTab("Print")
+	-- UI.AddToggle("Print ISEnraged", nil, true)
+	-- UI.AddToggle("Print EnrageNR", nil, true)
+	-- UI.AddToggle("MyTranq", nil, true)
+	-- UI.AddToggle("Enraged by Aura applied", nil, true)
+	-- UI.AddToggle("Enraged by Unit:Aura", nil, true)
 	
 	
 end
