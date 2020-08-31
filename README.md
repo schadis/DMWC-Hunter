@@ -7,6 +7,12 @@
 
 ## Changelog
 
+## 31.08.2020
+
+* changed fix mana % to actual cost of the spells
+* save tranqmana is only active on tranqshotbosses
+* save tranqmana now saves 3 times the tranqshotcost
+
 ## 29.08.2020
 
 * reorder settings of the rotation

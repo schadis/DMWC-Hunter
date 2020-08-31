@@ -2,7 +2,7 @@ local DMW = DMW
 local Hunter = DMW.Rotations.HUNTER
 local Rotation = DMW.Helpers.Rotation
 local Setting = DMW.Helpers.Rotation.Setting
-local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD, Health, CDs, HUD, Enemy10Y, Enemy10YC, Enemy20Y, Enemy20YC, Enemy30Y, Enemy30YC, Enemy41Y, Enemy41YC, Enemy50Y, Enemy50YC, CTime
+local Friend, Player, Pet, Buff, Debuff, GUID, Spell, Target, Talent, Item, GCD, Health, CDs, HUD, Enemy10Y, Enemy10YC, Enemy20Y, Enemy20YC, Enemy30Y, Enemy30YC, Enemy41Y, Enemy41YC, Enemy50Y, Enemy50YC, CTime , Power
 local ShotTime = GetTime()
 local FeignDeathIndex = 0
 local isFeign = false 
@@ -126,7 +126,6 @@ local function Locals()
 	Health = Player.Health
 	Pet = DMW.Player.Pet
     HP = Player.HP
-    Power = Player.PowerPct
     Spell = Player.Spells
     Talent = Player.Talents
     Trait = Player.Traits
@@ -141,7 +140,6 @@ local function Locals()
 	Enemy50Y, Enemy50YC = Player:GetEnemies(50)
 	BossEnraged = EnragedBoss()
 	MyTranq = Tranqorder()
-
 
  end
 
@@ -651,13 +649,13 @@ end
 local function TranqshotMana()
 
 	if Setting("Save Tranq Mana") 
-	and BossID == 14020	-- Chromagus,
+	and (BossID == 14020	-- Chromagus,
 	or BossID == 11981	-- Flamegore,
 	or BossID == 11982	-- Magmadar,
 	or BossID == 15509	-- Princess Huhuran,
-	or BossID == 15932	-- Gluth
+	or BossID == 15932)	-- Gluth
 	then
-		TranqMana = 15
+		TranqMana = (3 * Spell.TranquilizingShot:Cost())
 	else 
 		TranqMana = 0
 	end
@@ -686,15 +684,15 @@ local function Auto()
 
 local function Defensive()
  --Aspect of the Monkey
-	 if Setting("Aspect Of The Monkey") 
-	 and Player.Combat  
-	 and Player.HP < Setting("Aspect of the Monkey HP") 
-	 and Player.PowerPct > 20  
-	 and Target.Distance < 8 
-	 and not Buff.AspectOfTheMonkey:Exist(Player)
-	 and not castingAShot
-	 and not Player.Casting
-	 and Spell.AspectOfTheMonkey:Cast(Player) then
+	if Setting("Aspect Of The Monkey") 
+	and Player.Combat  
+	and Player.HP < Setting("Aspect of the Monkey HP") 
+	and Player.Power > Spell.AspectOfTheMonkey:Cost()
+	and Target.Distance < 8 
+	and not Buff.AspectOfTheMonkey:Exist(Player)
+	and not castingAShot
+	and not Player.Casting
+	and Spell.AspectOfTheMonkey:Cast(Player) then
 		return true 
 	end
 end
@@ -881,7 +879,7 @@ local function CoolDowns()
 			if Item.DevilsaurEye:Use(Player) then return true end
 			
 		elseif Spell.RapidFire:Known()
-			and Player.PowerPct >= 5
+			and Player.Power >= Spell.RapidFire:Cost()
 			and Spell.RapidFire:CD() == 0
 			then
 				if Spell.RapidFire:Cast(Player) then return true end
@@ -903,12 +901,12 @@ local function CoolDowns()
 				
 		elseif Spell.BloodFury:Known() 
 			and Spell.BloodFury:CD() <= 1.6
-			and Player.PowerPct >= 5
+			and Player.Power >= Spell.BloodFury:Cost()
 			then
 				if Spell.BloodFury:Cast(Player) then return true end
 			
 		elseif Spell.BerserkingTroll:Known()
-			and Player.PowerPct >= 5
+			and Player.Power >= Spell.BerserkingTroll:Cost()
 			and Spell.BerserkingTroll:CD() == 0 
 			then
 				if Spell.BerserkingTroll:Cast(Player) then return true end
@@ -1126,7 +1124,7 @@ local function Utility()
 	and not Player.Moving 
 	and Pet and not Pet.Dead 
 	and Pet.HP <= Setting("Mend Pet HP") 
-	and Player.PowerPct > 30 
+	and Player.Power > Spell.MendPet:Cost()
 	and not castingAShot
 	and not Player.Casting
 	and not Spell.MendPet:LastCast() 
@@ -1145,7 +1143,7 @@ local function Utility()
 	and Player.CombatLeftTime > 8 
 	and not Spell.AspectOfTheHawk:LastCast() 
 	and Player.Moving 
-	and not Buff.AspectOfTheCheetah:Exist(Player) 
+	and not Buff.AspectOfTheCheetah:Exist(Player, OnlyPlayer)
 	and Spell.AspectOfTheCheetah:Cast(Player) then
 		return true
 	end
@@ -1155,9 +1153,10 @@ local function Utility()
 	if Setting("TrueShot Buff") 
 	and not Player.Combat
 	and not Player.Casting
-    and not castingAShot	
-	and not Buff.TrueshotAura:Exist(Player) 
-	and Player.PowerPct > 80 
+    and not castingAShot
+	and Spell.TrueshotAura:Known()
+	and Player.Power > Spell.TrueshotAura:Cost()
+	and (not Buff.TrueshotAura:Exist(Player, OnlyPlayer) or Buff.TrueshotAura:Remain(Player, OnlyPlayer) <= 480)
 	and Spell.TrueshotAura:Cast(Player) then
 		return true
 	end
@@ -1388,6 +1387,7 @@ local function Shots()
 			and MyTranq
 			and Target.Facing
 			and Target:IsBoss()
+			and Player.Power > Spell.TranquilizingShot:Cost()
 	    	then 
 				StopAttack() 
 				SpellStopCasting()				
@@ -1404,7 +1404,8 @@ local function Shots()
 	    	and Target.Distance > 8
 	    	and not castingAShot
 	        and not Player.Casting
-			and Player.PowerPct > TranqMana
+			and Player.Power > Spell.ConcussiveShot:Cost()
+			and Player.Power > TranqMana
 	    	and not (Target.CreatureType == "Totem") 
 	    	and Spell.ConcussiveShot:Cast(Target) then
 			    return true
@@ -1417,8 +1418,8 @@ local function Shots()
 	    	and not Player.Casting
 	    	and not castingAShot
 	    	and Target.Distance > 8  
-	    	and Player.PowerPct > 6
-			and Player.PowerPct > TranqMana			
+	    	and Player.Power > Spell.SerpentSting:Cost()
+			and Player.Power > TranqMana			
 	    	and Target.TTD > 5
 	    	and not (Target.CreatureType == "Mechanical" or Target.CreatureType == "Elemental" or CreatureType == "Totem") 
 	    	and not Debuff.SerpentSting:Exist(Target) 
@@ -1427,7 +1428,7 @@ local function Shots()
         end
 
 
---Calculating Reload percentage before goeing throug Aimedshot
+--Calculating Reload percentage before goeing throug AimedShot
 
 		
 		-- print("------")
@@ -1450,8 +1451,8 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 3
-			and Player.PowerPct > TranqMana			
+		    and Player.Power > Spell.AimedShot:Cost()
+			and Player.Power > TranqMana			
 		    and Target.TTD > 4
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
@@ -1468,8 +1469,8 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 3
-			and Player.PowerPct > TranqMana				
+			and Player.Power > Spell.ArcaneShot:Cost()
+			and Player.Power > TranqMana				
 		    and not (Target.CreatureType == "Totem") 
 		    and Player.Moving 
 			and Spell.ArcaneShot:Cast(Target)
@@ -1485,8 +1486,8 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 3
-			and Player.PowerPct > TranqMana			
+		    and Player.Power > Spell.AimedShot:Cost()
+			and Player.Power > TranqMana			
 		    and Target.TTD > 4
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving
@@ -1503,8 +1504,8 @@ local function Shots()
 		    and not Player.Casting
 		    and Spell.ArcaneShot:IsReady()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 3
-			and Player.PowerPct > TranqMana				
+			and Player.Power > TranqMana
+			and Player.Power > Spell.ArcaneShot:Cost()			
 		    and not (Target.CreatureType == "Totem") 
 		    and Player.Moving 
 			and Spell.ArcaneShot:Cast(Target)
@@ -1520,8 +1521,8 @@ local function Shots()
 		    and Spell.MultiShot:IsReady()
 			and Spell.AutoShot:LastCast()
 		    and Target.Distance > 8 
-		    and Player.PowerPct > 3
-			and Player.PowerPct > TranqMana	
+			and Player.Power > Spell.MultiShot:Cost()
+			and Player.Power > TranqMana	
 		    and Target.TTD > 2
 		    and not (Target.CreatureType == "Totem") 
 		    and not Player.Moving 
@@ -1539,8 +1540,8 @@ local function Shots()
 	    	and not Player.Casting
 	    	and Spell.ArcaneShot:IsReady()
 	    	and Target.Distance > 8 
-	    	and Player.PowerPct > 4
-			and Player.PowerPct > TranqMana				
+			and Player.Power > Spell.ArcaneShot:Cost()
+			and Player.Power > TranqMana				
 	    	and not (Target.CreatureType == "Totem")
 			and not castingAShot			
 	    	and Spell.ArcaneShot:Cast(Target) then
@@ -1696,7 +1697,7 @@ function Hunter.Rotation()
 			and not Player.Casting 
 			and not castingAShot 
 			and not Buff.AspectOfTheWild:Exist(Player) 
-			and Player.PowerPct > 30 
+			and Player.Power > Spell.AspectOfTheWild:Cost()
 			and Spell.AspectOfTheWild:Cast(Player)
 				then 
 					return true 
@@ -1708,7 +1709,7 @@ function Hunter.Rotation()
 			and not castingAShot 
 			and Target.Distance > 8 
 			and (not Buff.AspectOfTheHawk:Exist(Player) or Buff.AspectOfTheMonkey:Exist(Player)) 
-			and Player.PowerPct > 30 
+			and Player.Power > Spell.AspectOfTheHawk:Cost()
 			and Spell.AspectOfTheHawk:Cast(Player) 
 				then 
 					return true
@@ -1746,8 +1747,8 @@ function Hunter.Rotation()
         and Target.Facing 
         and not Player.Casting
         and not castingAShot
-		and Player.PowerPct > TranqMana 
-		and Player.PowerPct > 10
+		and Player.Power > TranqMana 
+		and Player.Power > Spell.HuntersMark:Cost()
         and Target.Distance <= 48
 		and (Target.Health >= 20000 or Setting("Allways HuntersMark"))
         and (Target.TTD > 8 or Setting("Allways HuntersMark"))
