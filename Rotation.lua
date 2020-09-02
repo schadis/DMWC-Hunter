@@ -649,11 +649,11 @@ end
 local function TranqshotMana()
 
 	if Setting("Save Tranq Mana") 
-	and (BossID == 14020	-- Chromagus,
-	or BossID == 11981	-- Flamegore,
-	or BossID == 11982	-- Magmadar,
-	or BossID == 15509	-- Princess Huhuran,
-	or BossID == 15932)	-- Gluth
+	and (BossID == 616	-- Chromagus,
+	or BossID == 615	-- Flamegore,
+	or BossID == 664	-- Magmadar,
+	or BossID == 714	-- Princess Huhuran,
+	or BossID == 1108)	-- Gluth
 	then
 		TranqMana = (3 * Spell.TranquilizingShot:Cost())
 	else 
@@ -1156,7 +1156,7 @@ local function Utility()
     and not castingAShot
 	and Spell.TrueshotAura:Known()
 	and Player.Power > Spell.TrueshotAura:Cost()
-	and (not Buff.TrueshotAura:Exist(Player, OnlyPlayer) or Buff.TrueshotAura:Remain(Player, OnlyPlayer) <= 480)
+	and not Buff.TrueshotAura:Exist(Player, OnlyPlayer)
 	and Spell.TrueshotAura:Cast(Player) then
 		return true
 	end
@@ -1315,7 +1315,7 @@ local function Utility()
 	
 -- Use Demonic or Dark Rune --
 	if Setting("Use Demonic or Dark Rune") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() and HP > 60 	and not Player.Casting and not castingAShot and (DMW.Time - ItemUsage) > 1.5 then
-		if Power <= Setting("Use Rune at #% Mana") and Player.Combat then
+		if Player.Power <= Setting("Use Rune at #% Mana") and Player.Combat then
 			if GetItemCount(12662) >= 1 and GetItemCooldown(12662) == 0 then
 				name = GetItemInfo(12662)
 				RunMacroText("/use " .. name)
@@ -1332,7 +1332,7 @@ local function Utility()
 
 -- Use best available Mana potion --
 	if Setting("Use Best Mana Potion") and Target and Target.ValidEnemy and Target.TTD > 6 and Target:IsBoss() 	and not Player.Casting and not castingAShot and (DMW.Time - ItemUsage) > 1.5 then
-		if Power <= Setting("Use Potion at #% Mana") and Player.Combat then
+		if Player.Power <= Setting("Use Potion at #% Mana") and Player.Combat then
 			if GetItemCount(13444) >= 1 and GetItemCooldown(13444) == 0 then
 				name = GetItemInfo(13444)
 				RunMacroText("/use " .. name)
@@ -1587,6 +1587,7 @@ function Hunter.Rotation()
 	
     Locals()
 	
+	
 --Debug and Log Info	
 	if Setting("Debug")
 	and not DMW.UI.Debug.Frame:IsShown() 
@@ -1624,7 +1625,7 @@ function Hunter.Rotation()
 		and Target.Facing 
 		and CDs
 		and ReadyCooldown()
-		and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
+		--and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
 		and Spell.AimedShot:CD() <= 4
 			then 
 			if CoolDowns() 
@@ -1654,23 +1655,23 @@ function Hunter.Rotation()
 			PetPassiveMode()
 			StopAttack() 
 			SpellStopCasting()
-			C_Timer.After(0.5, function() Spell.FeignDeath:Cast(Player) end)
+			C_Timer.After(0.3, function() Spell.FeignDeath:Cast(Player) end)
 			return true 
 	end
 	
 --Cooldowns with Quickshots
-	if Setting("Use CD when QuickShots is up")
-	and Target
-	and Target.Facing 
-	and CDs
-	and ReadyCooldown()
-	and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
-	and Buff.QuickShots:Exist(Player)
-		then 
-		if CoolDowns() 
-			then return true 
-		end
-	end
+	-- if Setting("Use CD when QuickShots is up")
+	-- and Target
+	-- and Target.Facing 
+	-- and CDs
+	-- and ReadyCooldown()
+	-- and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
+	-- and Buff.QuickShots:Exist(Player)
+		-- then 
+		-- if CoolDowns() 
+			-- then return true 
+		-- end
+	-- end
 
 --AimedMacro clear Target and target last target
 	if AimedMacro() then return true 
@@ -1691,20 +1692,18 @@ function Hunter.Rotation()
 		end
 
 --Aspect of the Hawk
-		if Setting("Aspect of the Hawk")
-			and (BossID == 15299 --viscidus
-			or BossID == 15509) --huhuran
-			and not Player.Casting 
-			and not castingAShot 
-			and not Buff.AspectOfTheWild:Exist(Player) 
-			and Player.Power > Spell.AspectOfTheWild:Cost()
-			and Spell.AspectOfTheWild:Cast(Player)
-				then 
-					return true 
+		-- if Setting("Aspect of the Hawk")
+			-- and (BossID == 713 --viscidus
+			-- or BossID == 714) --huhuran
+			-- and not Player.Casting 
+			-- and not castingAShot 
+			-- and not Buff.AspectOfTheWild:Exist(Player) 
+			-- and Player.Power > Spell.AspectOfTheWild:Cost()
+			-- and Spell.AspectOfTheWild:Cast(Player)
+				-- then 
+					-- return true 
 
-		elseif Setting("Aspect of the Hawk") 
-			and (not BossID == 15299 --viscidus
-			or not BossID == 15509) --huhuran
+		if Setting("Aspect of the Hawk") 
 			and not Player.Casting 
 			and not castingAShot 
 			and Target.Distance > 8 
