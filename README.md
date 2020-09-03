@@ -1,11 +1,19 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
-## Todo: 
-
+## Todo:
+ 
+* back switch of trinkets on the second feign death
 * ??? Tell me more
 
 ## Changelog
+
+## 03.09.2020
+
+* removed toggle Min.ready Colldowns cause of problems with the rotation
+* fixed the tranqfunction!!! really now!!!
+* removed the second enrage check (useless)
+* Cooldowns at the same time as Quickshots proc will work now
 
 ## 31.08.2020
 

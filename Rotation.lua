@@ -38,6 +38,8 @@ local reloadStarTime = 0
 local reloadInMoment = 0
 local aimednumber = 0
 local ReadyCooldownCountValue = 0
+local LastTargetFaced = nil;
+
 
 local bagSlots = {20, 21, 22, 23};
 local updateRequired = false;
@@ -55,30 +57,6 @@ local function EnemiesAroundTarget()
 	end
 end
  
-	--------------------------------------------------------------------------	
-
-local function EnragedBoss()
-	if Enemy50YC ~= nil
-	and Enemy50YC >=1 
-		then
-		for _, Unit in ipairs(Enemy41Y) do
-			if Unit:IsBoss()
-			and (Unit:AuraByID(19451, true)	-- SpellIds from Enrage Magmadar,
-			or Unit:AuraByID(23128, true)	-- Chromagus,
-			or Unit:AuraByID(23342, true)	-- Flamegore,
-			or Unit:AuraByID(26051, true)) 	-- Princess Huhuran
-			-- or Unit:AuraByID(???, true)	-- Gluth???
-				then						
-				BossEnraged = true
-				if Setting("Enraged by Unit:Aura") then print("Enraged by Unit:Aura") end
-				return true
-			end
-		end
-	end
-	BossEnraged = false
-	return false
-end
-
 	--------------------------------------------------------------------------	
 
 local function Tranqorder()
@@ -116,6 +94,7 @@ local function Tranqorder()
 	MyTranq = false
 	return false
 end
+
 	--------------------------------------------------------------------------	 
 	
 local function Locals()
@@ -138,9 +117,7 @@ local function Locals()
 	Enemy10Y, Enemy10YC = Player:GetEnemies(10)
 	Enemy41Y, Enemy41YC = Player:GetEnemies(41)
 	Enemy50Y, Enemy50YC = Player:GetEnemies(50)
-	BossEnraged = EnragedBoss()
 	MyTranq = Tranqorder()
-
  end
 
 	--------------------------------------------------------------------------	
@@ -379,9 +356,10 @@ local function CombatLogEvent(...)
 		end
 		
 	elseif(subEvent == "SPELL_AURA_APPLIED") then
-		local spellId = select(12, ...)
+		local spellName = select(13, ...)
+		local EnrageMagmadar, EnrageFlamegor, EnrageChromaggus, EnragePrincessHuhuran, EnrageGluth = GetSpellInfo(19451), GetSpellInfo(23128), GetSpellInfo(23342), GetSpellInfo(26051)--, GetSpellInfo(19434)
 		if (sourceName == "Magmadar" or sourceName == "Flamegor" or sourceName == "Chromaggus" or sourceName == "Princess Huhuran" or sourceName == "Gluth")
-		and (spellId == 19451 or spellId == 23128 or spellId == 23342 or spellId == 26051)
+		and (spellName == EnrageMagmadar or spellName == EnrageFlamegor or spellName == EnrageChromaggus or spellName == EnragePrincessHuhuran)
 			then
 			EnrageStartTime = GetTime() * 1000
 			EnrageNR = EnrageNR + 1
@@ -390,9 +368,10 @@ local function CombatLogEvent(...)
 		end	
 		
 	elseif(subEvent == "SPELL_AURA_REMOVED") then
-		local spellId = select(12, ...)
+		local spellName = select(13, ...)
+		local EnrageMagmadar, EnrageFlamegor, EnrageChromaggus, EnragePrincessHuhuran, EnrageGluth = GetSpellInfo(19451), GetSpellInfo(23128), GetSpellInfo(23342), GetSpellInfo(26051)--, GetSpellInfo(19434)
 		if (sourceName == "Magmadar" or sourceName == "Flamegor" or sourceName == "Chromaggus" or sourceName == "Princess Huhuran" or sourceName == "Gluth")
-		and (spellId == 19451 or spellId == 23128 or spellId == 23342 or spellId == 26051)
+		and (spellName == EnrageMagmadar or spellName == EnrageFlamegor or spellName == EnrageChromaggus or spellName == EnragePrincessHuhuran)
 		then
 		EnrageStopTime = GetTime() * 1000
 		BossEnraged = false
@@ -581,20 +560,23 @@ end
 
 ------------------------------------------------------------------
 
--- Getting the Encounter Name
+-- Getting the Encounter Name --Take Care Encounter ID is not Boss/MobID
 local function ENCOUNTER_START(encounterID, name, difficulty, size)
 	aimednumber = 0
 	name = BossName
 	BossID = encounterID
 	fightingBoss = true
-	
+	EnrageNR = 0	
+	BossEnraged = false
 end
--- Removing the Encounter Name
+-- Removing the Encounter Name --Take Care Encounter ID is not Boss/MobID
 local function ENCOUNTER_END(encounterID, name, difficulty, size)
 	aimednumber = 0
 	BossName = nil
 	BossID = nil
 	fightingBoss = false
+	EnrageNR = 0
+	BossEnraged = false
 end
 ------------------------------------------------------------------
 
@@ -664,8 +646,9 @@ end
  
 	--------------------------------------------------------------------------	
 
+--Autoshot
 local function Auto()
- --Autoshot
+
 	if not IsAutoRepeatSpell(Spell.AutoShot.SpellName) 
 	and (DMW.Time - ShotTime) > 0.5 
 	and Target.Distance > 8 
@@ -681,9 +664,10 @@ local function Auto()
   end
 
 	--------------------------------------------------------------------------	
-
+	
+--Aspect of the Monkey
 local function Defensive()
- --Aspect of the Monkey
+
 	if Setting("Aspect Of The Monkey") 
 	and Player.Combat  
 	and Player.HP < Setting("Aspect of the Monkey HP") 
@@ -711,7 +695,7 @@ local function FeignAndSwap()
 		end
 	end
 	
-	if Setting("Use FeignDeath on Aggro")
+	if Setting("Use FD on Aggro")
 		and Target 
 		and Target.ValidEnemy
 		and Player.Combat
@@ -745,7 +729,7 @@ local function FeignAndSwap()
 	and (Item.DevilsaurEye:CD() >= 30 or Item.Earthstrike:CD() >= 30 or Item.JomGabbar:CD() >= 30 or Item.BadgeoftheSwarmguard:CD() >= 30) 
 		then
 		
-		-- GetFeignDeathIndex()
+
 		local slotId1, textureName1, checkRelic1 = GetInventorySlotInfo("Trinket0Slot")	--"Trinket0Slot" 1ter slot
 		local slotId2, textureName2, checkRelic2 = GetInventorySlotInfo("Trinket1Slot")	--"Trinket1Slot" 2ter slot
 		local swapfinished = false
@@ -783,6 +767,7 @@ local function FeignAndSwap()
 			and swapfinishedslot2
 				then
 				JumpOrAscendStart()
+				aimednumber = 0
 				return true
 			end
 			
@@ -1001,9 +986,11 @@ local function AutoTargetAndFacing()
 		and Player.Combat 
 		and Target
 		and Target.ValidEnemy
+		and LastTargetFaced ~= Target.GUID
 		and Target.Distance <= 41
 		and not UnitIsFacing("player", Target.Pointer,180) then
             FaceDirection(Target.Pointer, true)
+			LastTargetFaced = Target.GUID
 			return true       
     end
 
@@ -1191,28 +1178,28 @@ local function Utility()
 		if Setting("Use Trowables") == 2
 		then
 			if GetItemCount(Item.DenseDynamite.ItemID) >= 1
-			and Target.Distance <= 30
+			and Target.Distance <= 28
 			and Item.DenseDynamite:CD() == 0 
 			then 
 				Item.DenseDynamite:UseGround(Target)
 				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(Item.ThoriumGrenade.ItemID) >= 1
-			and Target.Distance <= 45
+			and Target.Distance <= 43
 			and Item.ThoriumGrenade:CD() == 0 
 			then 
 				Item.ThoriumGrenade:UseGround(Target)
 				ItemUsage = DMW.Time
 				return true
 			elseif GetItemCount(Item.EZThroDynamitII.ItemID) >= 1
-			and Target.Distance <= 30
+			and Target.Distance <= 28
 			and Item.EZThroDynamitII:CD() == 0 
 			then 
 				Item.EZThroDynamitII:UseGround(Target)
 				ItemUsage = DMW.Time
 				return true				
 			elseif GetItemCount(Item.IronGrenade.ItemID) >= 1
-			and Target.Distance <= 45
+			and Target.Distance <= 43
 			and Item.IronGrenade:CD() == 0 
 			then 
 				Item.IronGrenade:UseGround(Target)
@@ -1222,7 +1209,7 @@ local function Utility()
 			
 		elseif Setting("Use Trowables") == 3
 			and GetItemCount(Item.DenseDynamite.ItemID) >= 1
-			and Target.Distance <= 30
+			and Target.Distance <= 28
 			and Item.DenseDynamite:CD() == 0 
 			then 
 				Item.DenseDynamite:UseGround(Target)
@@ -1230,7 +1217,7 @@ local function Utility()
 				return true
 		elseif Setting("Use Trowables") == 4
 			and GetItemCount(Item.EZThroDynamitII.ItemID) >= 1
-			and Target.Distance <= 30
+			and Target.Distance <= 28
 			and Item.EZThroDynamitII:CD() == 0 
 			then 
 				Item.EZThroDynamitII:UseGround(Target)
@@ -1238,7 +1225,7 @@ local function Utility()
 				return true		
 		elseif Setting("Use Trowables") == 5
 			and GetItemCount(Item.ThoriumGrenade.ItemID) >= 1
-			and Target.Distance <= 45
+			and Target.Distance <= 43
 			and Item.ThoriumGrenade:CD() == 0 
 			then 
 				Item.ThoriumGrenade:UseGround(Target)
@@ -1246,7 +1233,7 @@ local function Utility()
 				return true		
 		elseif Setting("Use Trowables") == 6
 			and GetItemCount(Item.IronGrenade.ItemID) >= 1
-			and Target.Distance <= 45
+			and Target.Distance <= 43
 			and Item.IronGrenade:CD() == 0 
 			then 
 				Item.IronGrenade:UseGround(Target)
@@ -1383,7 +1370,6 @@ local function Shots()
 --TranquilizingShot (if Boss goes Enrage)
 		if Setting("Tranq Shot")
 		    and Spell.TranquilizingShot:Known()
-			and BossEnraged 
 			and MyTranq
 			and Target.Facing
 			and Target:IsBoss()
@@ -1392,6 +1378,9 @@ local function Shots()
 				StopAttack() 
 				SpellStopCasting()				
 				if Spell.TranquilizingShot:Cast(Target) then
+				castingAShot = false
+				isReloading = false
+				castingAimed = false
 					return true
 				end
 		end	
@@ -1621,22 +1610,34 @@ function Hunter.Rotation()
 --Burst Opener
 	if Setting("Use Opener Rotation")
 		and aimednumber >= 1
+		and aimednumber <= 4
 		and Target
 		and Target.Facing 
 		and CDs
 		and ReadyCooldown()
-		--and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
 		and Spell.AimedShot:CD() <= 4
 			then 
 			if CoolDowns() 
 				then return true 
 			end
+			
+	--Cooldowns with Quickshots
+	elseif Setting("Use CD when QuickShots is up")
+	and Target
+	and Target.Facing 
+	and Target:IsBoss()
+	and CDs
+	and ReadyCooldown()
+	and Buff.QuickShots:Exist(Player)
+		then 
+		if CoolDowns() 
+			then return true 
+		end
 	end
 			
 	if Setting("Use Opener Rotation")
 	and Setting("FD in Opener Roration")
 	and ((Setting("Swap out Slot1") >= 2) or (Setting("Swap out Slot2") >= 2))
-	and aimednumber >= 3
 	and Spell.FeignDeath:CD() == 0
 	and	(IsEquippedItem(trinkettoswapout1()) or IsEquippedItem(trinkettoswapout2()))
 	and (Item.DevilsaurEye:CD() >= 30 or Item.Earthstrike:CD() >= 30 or Item.JomGabbar:CD() >= 30 or Item.BadgeoftheSwarmguard:CD() >= 30) 
@@ -1656,22 +1657,13 @@ function Hunter.Rotation()
 			StopAttack() 
 			SpellStopCasting()
 			C_Timer.After(0.3, function() Spell.FeignDeath:Cast(Player) end)
+			castingAShot = false
+			isReloading = false
+			castingAimed = false
 			return true 
 	end
 	
---Cooldowns with Quickshots
-	-- if Setting("Use CD when QuickShots is up")
-	-- and Target
-	-- and Target.Facing 
-	-- and CDs
-	-- and ReadyCooldown()
-	-- and ReadyCooldownCountValue >= Setting("Min. Ready Cooldowns") 
-	-- and Buff.QuickShots:Exist(Player)
-		-- then 
-		-- if CoolDowns() 
-			-- then return true 
-		-- end
-	-- end
+
 
 --AimedMacro clear Target and target last target
 	if AimedMacro() then return true 
@@ -1835,10 +1827,8 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		updateRequired = true;
 	elseif(event == "ENCOUNTER_START") then
 		ENCOUNTER_START(encounterID, name, difficulty, size)
-	    EnrageNR = 0;
 	elseif(event == "ENCOUNTER_END") then
-		ENCOUNTER_END(encounterID, name, difficulty, size)
-	    EnrageNR = 0;
+		ENCOUNTER_END(encounterID, name, difficulty, size)    
 	elseif (event == "UNIT_AURA") and DMW.UI.MinimapIcon then
 		Buffsniper()
 	end
