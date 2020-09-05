@@ -1370,7 +1370,9 @@ local function Shots()
 --TranquilizingShot (if Boss goes Enrage)
 		if Setting("Tranq Shot")
 		    and Spell.TranquilizingShot:Known()
+			and Spell.TranquilizingShot:CD() == 0
 			and MyTranq
+			and BossEnraged
 			and Target.Facing
 			and Target:IsBoss()
 			and Player.Power > Spell.TranquilizingShot:Cost()

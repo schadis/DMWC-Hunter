@@ -8,6 +8,10 @@
 
 ## Changelog
 
+## 05.09.2020
+
+* fixed tranqshot really ;-)
+
 ## 03.09.2020
 
 * removed toggle Min.ready Colldowns cause of problems with the rotation
