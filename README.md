@@ -1,12 +1,31 @@
 # DMWC-HunterMod
 -Mod with additional functions (base frome Biggie)
 
+* there is a DMWC fork in my git (pls use it or the rotation might not work correctily until it gets merged to main git)
+
+## Supported Trinkets/Consumables
+
+* DevilsaurEye
+* Earthstrike
+* JomGabbar
+* BadgeoftheSwarmguard
+* SapperCharges
+* Nates and Dynamite(this needs additional work)
+* Heal and Mana pots
+* Demonic/Dark Runes
+
 ## Todo:
  
 * back switch of trinkets on the second feign death
 * ??? Tell me more
 
 ## Changelog
+
+## 09.09.2020
+
+* removed testing Status from tranqshot part
+* moved save tranq mana to tranqshot tap
+* save tranq mana can be ticked cause it will auto activate if its a bossfight where tranq is needed
 
 ## 05.09.2020
 

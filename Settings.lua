@@ -57,7 +57,7 @@ function Hunter.Settings()
 	UI.AddToggle("Multi Shot", "Will use Multishot", true)	
 	UI.AddToggle("Arcane Shot", "Will use Arcanshot", true)
 	UI.AddToggle("Serpent Sting", "Will use Serpent Sting", true)
-	UI.AddToggle("Save Tranq Mana","Holds back 10% Mana for Tranqshot", true)
+
 
 	UI.AddHeader("Melee")
 	UI.AddToggle("RaptorStrike", "uses RaptorStrike", true)
@@ -138,11 +138,10 @@ function Hunter.Settings()
     UI.AddToggle("Use Demonic or Dark Rune", "Uses Demonic or Dark Rune " ) 	
 	UI.AddRange("Use Rune at #% Mana", nil, 10, 100, 1, 50, true)
  
-
-	-- Testing Status
-	UI.AddTab("Testing")
-	UI.AddHeader("Do not use this is not working")
+	-- Tranwshot Tab
+	UI.AddTab("Tranqshot")
 	UI.AddToggle("Tranq Shot","Uses Tranq Shot if Enraged", true)
+	UI.AddToggle("Save Tranq Mana","Holds back Mana for Tranqshot in fights where its needed", true)
 	UI.AddDropdown("Tranq Order", "Tranqshot every first,second or third frenzy", { 1, 2, 3}, 1)
 	UI.AddDropdown("Hunters that Tranq", "How many hunter Tranq the boss", { 1, 2, 3}, 1)
 	
