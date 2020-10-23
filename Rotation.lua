@@ -46,6 +46,9 @@ local updateRequired = false;
 local FHowlPetButton = nil
 local ItemUsage = GetTime()
 
+
+
+
 	--------------------------------------------------------------------------	
 
 local function EnemiesAroundTarget()
@@ -118,6 +121,10 @@ local function Locals()
 	Enemy41Y, Enemy41YC = Player:GetEnemies(41)
 	Enemy50Y, Enemy50YC = Player:GetEnemies(50)
 	MyTranq = Tranqorder()
+	
+	
+
+	
  end
 
 	--------------------------------------------------------------------------	
@@ -1159,9 +1166,11 @@ local function Utility()
 	and GetItemCount(Item.GoblinSapperCharge.ItemID) >= 1
 	and Item.GoblinSapperCharge:CD() == 0 
 		then 
-		Item.GoblinSapperCharge:Use(Player)
-		ItemUsage = DMW.Time
-		return true
+		if Item.GoblinSapperCharge:Use(Player) 
+			then
+			ItemUsage = DMW.Time
+			return true
+		end
 	end
 
 -- Granates and dynamite
@@ -1181,30 +1190,38 @@ local function Utility()
 			and Target.Distance <= 28
 			and Item.DenseDynamite:CD() == 0 
 			then 
-				Item.DenseDynamite:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true
+				if Item.DenseDynamite:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end
 			elseif GetItemCount(Item.ThoriumGrenade.ItemID) >= 1
 			and Target.Distance <= 43
 			and Item.ThoriumGrenade:CD() == 0 
 			then 
-				Item.ThoriumGrenade:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true
+				if Item.ThoriumGrenade:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end 
 			elseif GetItemCount(Item.EZThroDynamitII.ItemID) >= 1
 			and Target.Distance <= 28
 			and Item.EZThroDynamitII:CD() == 0 
 			then 
-				Item.EZThroDynamitII:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true				
+				if Item.EZThroDynamitII:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end			
 			elseif GetItemCount(Item.IronGrenade.ItemID) >= 1
 			and Target.Distance <= 43
 			and Item.IronGrenade:CD() == 0 
 			then 
-				Item.IronGrenade:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true	
+				if Item.IronGrenade:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end	
 			end
 			
 		elseif Setting("Use Trowables") == 3
@@ -1212,33 +1229,41 @@ local function Utility()
 			and Target.Distance <= 28
 			and Item.DenseDynamite:CD() == 0 
 			then 
-				Item.DenseDynamite:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true
+				if Item.DenseDynamite:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end	
 		elseif Setting("Use Trowables") == 4
 			and GetItemCount(Item.EZThroDynamitII.ItemID) >= 1
 			and Target.Distance <= 28
 			and Item.EZThroDynamitII:CD() == 0 
 			then 
-				Item.EZThroDynamitII:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true		
+				if Item.EZThroDynamitII:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end			
 		elseif Setting("Use Trowables") == 5
 			and GetItemCount(Item.ThoriumGrenade.ItemID) >= 1
 			and Target.Distance <= 43
 			and Item.ThoriumGrenade:CD() == 0 
 			then 
-				Item.ThoriumGrenade:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true		
+				if Item.ThoriumGrenade:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end		
 		elseif Setting("Use Trowables") == 6
 			and GetItemCount(Item.IronGrenade.ItemID) >= 1
 			and Target.Distance <= 43
 			and Item.IronGrenade:CD() == 0 
 			then 
-				Item.IronGrenade:UseGround(Target)
-				ItemUsage = DMW.Time
-				return true			
+				if Item.IronGrenade:UseGround(Target)
+					then
+					ItemUsage = DMW.Time
+					return true
+				end			
 		
 		end
 	end
@@ -1575,7 +1600,7 @@ end
 
 function Hunter.Rotation()
 
-	
+	-- print(GetMousePosition())
     Locals()
 	
 	
@@ -1804,6 +1829,10 @@ function Hunter.Rotation()
    	end
 end
 
+
+
+
+
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED");
@@ -1818,20 +1847,21 @@ eventFrame:RegisterEvent("STOP_AUTOREPEAT_SPELL");
 eventFrame:SetScript("OnEvent", function(self, event, ...)
 	if(event == "COMBAT_LOG_EVENT_UNFILTERED" ) then
 		CombatLogEvent(CombatLogGetCurrentEventInfo());
-	elseif(event == "UNIT_SPELLCAST_INTERRUPTED") then
+	elseif(event == "UNIT_SPELLCAST_INTERRUPTED") and DMW.UI.MinimapIcon then
 		SpellInterrupted(...);
-	elseif event == "START_AUTOREPEAT_SPELL" then
+	elseif event == "START_AUTOREPEAT_SPELL" and DMW.UI.MinimapIcon then
         OnStartAutorepeatSpell();
-    elseif event == "STOP_AUTOREPEAT_SPELL" then
+    elseif event == "STOP_AUTOREPEAT_SPELL" and DMW.UI.MinimapIcon then
         OnStopAutorepeatSpell();	
 	elseif(event == "PLAYER_ENTERING_WORLD") then
 		GetQuiverInfo();
 		updateRequired = true;
-	elseif(event == "ENCOUNTER_START") then
+	elseif(event == "ENCOUNTER_START") and DMW.UI.MinimapIcon then
 		ENCOUNTER_START(encounterID, name, difficulty, size)
-	elseif(event == "ENCOUNTER_END") then
+	elseif(event == "ENCOUNTER_END") and DMW.UI.MinimapIcon then
 		ENCOUNTER_END(encounterID, name, difficulty, size)    
 	elseif (event == "UNIT_AURA") and DMW.UI.MinimapIcon then
 		Buffsniper()
+
 	end
 end)

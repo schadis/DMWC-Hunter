@@ -163,6 +163,8 @@ function Hunter.Settings()
 	-- UI.AddToggle("MyTranq", nil, true)
 	-- UI.AddToggle("Enraged by Aura applied", nil, true)
 	-- UI.AddToggle("Enraged by Unit:Aura", nil, true)
-	
+
+
+		
 	
 end
