@@ -30,7 +30,6 @@ local svreloadTime = 0;
 local feignDeathStartTime = 0;
 local castingAShot = false
 local castingAimed = false
-local AimedMacroDone = false
 local isReloading = false
 local reloadPercent = 100
 local reloadEndTime
@@ -121,6 +120,7 @@ local function Locals()
 	Enemy41Y, Enemy41YC = Player:GetEnemies(41)
 	Enemy50Y, Enemy50YC = Player:GetEnemies(50)
 	MyTranq = Tranqorder()
+	
 	
 	
 
@@ -276,7 +276,7 @@ local function CombatLogEvent(...)
 			castingAShot = true
 			isReloading = true
 			castingAimed = true
-			AimedMacroDone = false
+
 			
 		elseif(spellName == sMultiShot) then
 			CalculateShootTimes()
@@ -326,7 +326,7 @@ local function CombatLogEvent(...)
 					aimednumber = aimednumber + 1
 				end
 				castingAimed = false
-				AimedMacroDone = false
+
 			end
 			
 		end
@@ -357,7 +357,7 @@ local function CombatLogEvent(...)
 					reloadEndTime = (reloadStarTime + reloadTime)
 				elseif spellName == sAimedShot then
 					castingAimed = false
-					AimedMacroDone = false
+
 				end
 			end
 		end
@@ -459,7 +459,7 @@ local function SpellInterrupted(source, castGUID, spellID)
 			reloadEndTime = (reloadStarTime + reloadTime)
 			elseif spellName == sAimedShot then
 				castingAimed = false
-				AimedMacroDone = false
+
 			end
 	end
 end
@@ -956,17 +956,7 @@ end
  
 	--------------------------------------------------------------------------	
 
-local function AimedMacro()
-		if castingAimed and not AimedMacroDone and Target and Target.ValidEnemy and not Target.Dead then 
-				ClearTarget()
-				C_Timer.After(0.1, function() TargetLastTarget() end )
-				AimedMacroDone = true
-				return true
-		end
 
-end
- 
- 	--------------------------------------------------------------------------	
  
 --FuriousHowl by Pet
 local function petbuff()
@@ -1690,11 +1680,6 @@ function Hunter.Rotation()
 			return true 
 	end
 	
-
-
---AimedMacro clear Target and target last target
-	if AimedMacro() then return true 
-	end
 	
 --Tetermin if this is a tranqshot fight	
 	if TranqshotMana() then return true 
@@ -1828,7 +1813,6 @@ function Hunter.Rotation()
 		
    	end
 end
-
 
 
 

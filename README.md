@@ -21,11 +21,9 @@
 
 ## Changelog
 
+## 07.12.2020
 
-## 23.10.2020
-
-* fixed addon out of date issue
-* changes to item usage
+* removed Aimed Macro (not needed anymore)
 
 ## 09.09.2020
 
