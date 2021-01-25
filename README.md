@@ -21,6 +21,11 @@
 
 ## Changelog
 
+## 25.01.2021
+
+* HunterMark fix
+* changed some checks for dynamite (to not be executed every time)
+
 ## 07.12.2020
 
 * removed Aimed Macro (not needed anymore)
