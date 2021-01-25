@@ -165,5 +165,4 @@ function Hunter.Settings()
 	-- UI.AddToggle("Enraged by Unit:Aura", nil, true)
 
 	
-	
 end
