@@ -9,8 +9,6 @@ local isFeign = false
 
 local EnrageNR = 0;
 local TranqMana = 0;
-local Markisup = false
-local markedMobs = {}
 local BossEnraged = false
 local MyTranq = false
 local EnrageStartTime = 0;
@@ -46,14 +44,12 @@ local FHowlPetButton = nil
 local ItemUsage = GetTime()
 
 
-
-
 	--------------------------------------------------------------------------	
 
-local function EnemiesAroundTarget()
+local function EnemiesAroundTarget5Y()
 	if Target
 		then 
-		return Target:GetEnemies(5)
+		return select(2, Target:GetEnemies(5))
 	else
 		return nil
 	end
@@ -115,15 +111,11 @@ local function Locals()
     HUD = DMW.Settings.profile.HUD
     CDs = Player:CDs()
 	GCD = Player:GCD()
-	Target5Y, Target5YC = EnemiesAroundTarget()
 	Enemy10Y, Enemy10YC = Player:GetEnemies(10)
 	Enemy41Y, Enemy41YC = Player:GetEnemies(41)
 	Enemy50Y, Enemy50YC = Player:GetEnemies(50)
 	MyTranq = Tranqorder()
 	
-	
-	
-
 	
  end
 
@@ -385,62 +377,6 @@ local function CombatLogEvent(...)
 		end		
 	end
 	
-	
---check if Target has Mark	
-		if DMW.Player.Target ~= nil 
-		and DMW.Player.Target.Distance < 50 then
-			for i = 1, 40 do
-				if UnitGUID("target") == nil then
-					break				
-				elseif DMW.Player.Target.ValidEnemy and UnitDebuff("target", i) == "Hunter's Mark" then
-					markedMobs[UnitGUID("target")] = UnitGUID("target")
-					break
-				elseif DMW.Player.Target.ValidEnemy and UnitDebuff("target", i) ~= "Hunter's Mark" then
-					markedMobs[UnitGUID("target")] = nil
-				end
-			end
-		end
-		
-		if DMW.Player.Target ~= nil 
-		and DMW.Player.Target.Distance < 50 then
-			for k, v in pairs(markedMobs) do
-				if v == UnitGUID("target") 
-					then
-					Markisup = true
-					break
-				elseif v ~= UnitGUID("target") then
-					Markisup = false
-				end
-			end	
-		end
-		
-		-- if DMW.Player.Target ~= nil 
-		    -- and DMW.Player.Target.ValidEnemy 
-		    -- and DMW.Player.Target.Distance < 50 
-			-- and (DMW.Player.Target.Name == "Magmadar"
-			-- or DMW.Player.Target.Name == "Flamegor"
-			-- or DMW.Player.Target.Name == "Chromaggus"
-			-- or DMW.Player.Target.Name == "Princess Huhuran"
-			-- or DMW.Player.Target.Name == "Gluth")
-			-- then
-				-- for i = 1, 40 do
-				
-					-- local name, _, _, debuffType, duration, expirationTime, source, _, _, EnrageId = UnitBuff("target", i) 
-			
-					-- if (EnrageId == 23128 --frenzy Chromaggus
-					-- or EnrageId == 19451 --frenzy Magmadar
-					-- or EnrageId == 23342) --frenzy Flamegor 
-					-- then 
-							-- BossIsEnraged = true
-							-- EnrageNR = EnrageNR + 1
-							-- print("Enrage Start by UnitBuff")
-							-- break
-							
-					-- else
-						-- BossIsEnraged = false
-					-- end
-				-- end
-		-- end
 end
 	
 	--------------------------------------------------------------------------	
@@ -1170,8 +1106,8 @@ local function Utility()
 	and (DMW.Time - ItemUsage) > 1.5 
 	and not Player.Casting
     and not castingAShot
-	and Target5YC ~= nil
-	and Target5YC >= Setting("Enemys 5Y around Target")
+	and EnemiesAroundTarget5Y() ~= nil
+	and EnemiesAroundTarget5Y() >= Setting("Enemys 5Y around Target")
 	and Target.Facing
 	then
 		if Setting("Use Trowables") == 2
@@ -1453,7 +1389,7 @@ local function Shots()
 		if Setting("Aimed Shot")
 		    and Setting("Clipped Rotation") 
 		    and Target.Facing 
-			and Target.HealthMax >= 5000
+			-- and Target.HealthMax >= 5000
 		    and not Player.Casting
 		    and Spell.AimedShot:IsReady()
 		    and Target.Distance > 8 
@@ -1590,7 +1526,6 @@ end
 
 function Hunter.Rotation()
 
-	-- print(GetMousePosition())
     Locals()
 	
 	
@@ -1755,12 +1690,11 @@ function Hunter.Rotation()
         and Target.Distance <= 48
 		and (Target.Health >= 20000 or Setting("Allways HuntersMark"))
         and (Target.TTD > 8 or Setting("Allways HuntersMark"))
-		and (not Target.ObjectID == 15275 --Emperor Vek AQ;Lava Reaver;Lava Surger;Lava Elemental;Blackwing Spellbinder
-		or not Target.ObjectID == 12100
-		or not Target.ObjectID == 12101 
-		or not Target.ObjectID == 12076
-		or not Target.ObjectID == 12457) 
-		and not Markisup
+		and (ObjectEntryID(Target.Pointer) ~= 15275 --Emperor Vek AQ;Lava Reaver;Lava Surger;Lava Elemental;Blackwing Spellbinder
+		or ObjectEntryID(Target.Pointer) ~= 12100
+		or ObjectEntryID(Target.Pointer) ~= 12101 
+		or ObjectEntryID(Target.Pointer) ~= 12076
+		or ObjectEntryID(Target.Pointer) ~= 12457) 
 		and not Debuff.HuntersMark:Exist(Target) 
         and not (Target.CreatureType == "Totem")  
         and Spell.HuntersMark:Cast(Target) then
@@ -1846,6 +1780,5 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 		ENCOUNTER_END(encounterID, name, difficulty, size)    
 	elseif (event == "UNIT_AURA") and DMW.UI.MinimapIcon then
 		Buffsniper()
-
 	end
 end)
